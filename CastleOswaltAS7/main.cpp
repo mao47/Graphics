@@ -47,6 +47,63 @@ typedef struct _faceStruct {
   int n1,n2,n3;
 } faceStruct;
 
+typedef struct LightSource {
+	int type;
+	float x, y, z;
+	float r, g, b;
+} LightSource;
+
+LightSource *lightList;
+void layoutReader(char *filename)
+{
+	FILE *fp;
+	int lights, spheres, meshes;
+	int i;
+	char letter;
+	float x,y,z,r,g,b;
+	int lightType;
+
+	fp = fopen(filename, "r");
+	if(fp == NULL)
+	{
+		printf("Cannot open %s\n!", filename);
+		exit(0);
+	}
+	if(!feof(fp))
+	{
+		fscanf(fp, "%d %d %d\n", &lights, &spheres, &meshes);
+	}
+
+	lightList = (LightSource *)malloc(sizeof(LightSource)*lights);
+ 
+	//read in light sources
+	i = 0;
+	while(!feof(fp) && i < lights)
+	{
+		fscanf(fp, "%c %d %f %f %f %f %f %f\n", &letter, &lightType,
+			&x, &y, &z, &r, &g, &b);
+
+		if(letter == 'L')
+		{
+			lightList[i].type = lightType;
+			lightList[i].x = x;
+			lightList[i].y = y;
+			lightList[i].z = z;
+			lightList[i].r = r;
+			lightList[i].g = g;
+			lightList[i].b = b;
+		}
+		else
+		{
+			printf("Expected L but read %c\n", letter);
+		}
+		i++;
+	}
+
+
+}
+
+
 int verts, faces, norms;    // Number of vertices, faces and normals in the system
 point *vertList, *normList; // Vertex and Normal Lists
 faceStruct *faceList;	    // Face List
@@ -265,6 +322,7 @@ void	keyboard(unsigned char key, int x, int y)
 }
 
 
+
 int main(int argc, char* argv[])
 {    
 
@@ -272,6 +330,7 @@ int main(int argc, char* argv[])
 
 	BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
+	layoutReader("../samples/redsphere.rtl");
 	
 
     // Initialize GLUT
