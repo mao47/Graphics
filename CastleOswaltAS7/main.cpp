@@ -8,6 +8,7 @@
 #include "frame_buffer.h"
 #include "primitives.h"
 #include "color.h"
+#include "objects.h"
 #include <vector>
 
 #include <iostream>
@@ -25,6 +26,8 @@ int window_width, window_height;    // Window dimensions
 const int INITIAL_RES = 400;
 
 FrameBuffer* fb;
+MeshObject* meshList;
+int meshCount;
 
 class point
 {
@@ -73,7 +76,8 @@ void layoutReader(char *filename)
 	{
 		fscanf(fp, "%d %d %d\n", &lights, &spheres, &meshes);
 	}
-
+	meshCount = meshes;
+	meshList = new MeshObject[meshCount];//(MeshObject *)malloc(sizeof(MeshObject)*meshCount);
 	lightList = (LightSource *)malloc(sizeof(LightSource)*lights);
  
 	//read in light sources
@@ -100,6 +104,26 @@ void layoutReader(char *filename)
 		i++;
 	}
 
+	i = 0;
+	while(!feof(fp) && i < spheres)
+	{
+
+		i++;
+	}
+
+	i = 0;
+	while(!feof(fp) && i < meshes)
+	{
+		char MeshFile[255];
+		float scale, rx, ry, rz, tx, ty, tz, ar, ag, ab, dr, dg, db, sr, sg, sb, ka, kd, ks, sexp, r, krefl, krefr;
+		fscanf(fp, "%c %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
+			&letter, &MeshFile, &scale, &rx, &ry, &rz, &tx, &ty, &tz, &ar, &ag, &ab, &dr, &dg, &db, &sr, &sg, &sb, &ka, &kd, &ks, &sexp, &r, &krefl, &krefr);
+		if(letter == 'M')
+		{
+			meshList[i].Load(MeshFile, scale, rx, ry, rz, tx, ty, tz);
+		}
+		i++;
+	}
 
 }
 
@@ -330,7 +354,7 @@ int main(int argc, char* argv[])
 
 	BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
-	layoutReader("../samples/redsphere.rtl");
+	layoutReader("../samples/red_sphere_and_teapot.rtl");
 	
 
     // Initialize GLUT

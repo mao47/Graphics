@@ -118,12 +118,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="objects.cpp" />
     <ClCompile Include="primitives.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="color.h" />
     <ClInclude Include="frame_buffer.h" />
     <ClInclude Include="glut.h" />
+    <ClInclude Include="objects.h" />
     <ClInclude Include="primitives.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
