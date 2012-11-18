@@ -8,6 +8,7 @@
 #include "frame_buffer.h"
 #include "primitives.h"
 #include "color.h"
+#include "objects.h"
 #include <vector>
 
 #include <iostream>
@@ -25,6 +26,8 @@ int window_width, window_height;    // Window dimensions
 const int INITIAL_RES = 400;
 
 FrameBuffer* fb;
+MeshObject* meshList;
+int meshCount;
 
 class point
 {
@@ -41,30 +44,6 @@ public:
 		x = xa; y = ya; z = za; w = wa;
 	}
 };
-
-//
-//class GraphicsObject
-//{
-//public:
-//	void computeIntersection(ray r);
-//};
-//
-//class Sphere : GraphicsObject
-//{
-//public:
-//	point center;
-//	double radius;
-//	Sphere(point cent, double rad) 
-//	{
-//		center = cent; radius = rad;
-//	}
-//};
-//
-//class Mesh : GraphicsObject
-//{
-//public:
-//	point 
-//}
 
 
 typedef struct _faceStruct {
@@ -101,34 +80,12 @@ typedef struct sphere {
 	double specExp;
 	double indRefr;
 	double kRefl;
-	double kRefl;
-} sphere;
-
-typedef struct mesh {
-	faceStruct *faceList;
-	point *vertList;
-	point *normList;
-	double rSpec;
-	double gSpec;
-	double bSpec;
-	double rDiff;
-	double gDiff;
-	double bDiff;
-	double rAmb;
-	double bAmb;
-	double gAmb;
-	double kSpec;
-	double kAmb;
-	double kDiff;
-	double specExp;
-	double indRefr;
-	double kRefl;
 	double kRefr;
-} mesh;
+} sphere;
 
 LightSource *lightList;
 sphere *sphereList;
-mesh *meshList;
+int sphereCount, lightCount;
 
 void layoutReader(char *filename)
 {
@@ -155,7 +112,12 @@ void layoutReader(char *filename)
 	{
 		fscanf(fp, "%d %d %d\n", &lights, &spheres, &meshes);
 	}
+	meshCount = meshes;
+	lightCount = lights;
+	sphereCount = spheres;
 
+	sphereList = new sphere[sphereCount];
+	meshList = new MeshObject[meshCount];//(MeshObject *)malloc(sizeof(MeshObject)*meshCount);
 	lightList = (LightSource *)malloc(sizeof(LightSource)*lights);
  
 	//read in light sources
@@ -216,6 +178,29 @@ void layoutReader(char *filename)
 			s.kRefl = kRefl;
 			s.kRefr = kRefr;
 		}
+		else
+		{
+			printf("Expected S but read %c\n", letter);
+		}
+		i++;
+	}
+
+	i = 0;
+	while(!feof(fp) && i < meshes)
+	{
+		char MeshFile[255];
+		float scale, rx, ry, rz, tx, ty, tz, ar, ag, ab, dr, dg, db, sr, sg, sb, ka, kd, ks, sexp, r, krefl, krefr;
+		fscanf(fp, "%c %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
+			&letter, &MeshFile, &scale, &rx, &ry, &rz, &tx, &ty, &tz, &ar, &ag, &ab, &dr, &dg, &db, &sr, &sg, &sb, &ka, &kd, &ks, &sexp, &r, &krefl, &krefr);
+		if(letter == 'M')
+		{
+			meshList[i].Load(MeshFile, scale, rx, ry, rz, tx, ty, tz);
+		}
+		else
+		{
+			printf("Expected M but read %c\n", letter);
+		}
+		i++;
 	}
 }
 
@@ -226,9 +211,8 @@ faceStruct *faceList;	    // Face List
 
 // The mesh reader itself
 // It can read *very* simple obj files
-void meshReader (char *filename,int sign, int index)
+void meshReader (char *filename,int sign)
 {
-	mesh m = 
   float x,y,z,len;
   int i;
   char letter;
@@ -447,7 +431,7 @@ int main(int argc, char* argv[])
 
 	BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
-	layoutReader("../samples/redsphere.rtl");
+	layoutReader("../samples/red_sphere_and_teapot.rtl");
 	
 
     // Initialize GLUT
