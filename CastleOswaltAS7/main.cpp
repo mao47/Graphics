@@ -207,6 +207,7 @@ void layoutReader(char *filename)
 		}
 		i++;
 	}
+	fclose(fp);
 }
 
 
