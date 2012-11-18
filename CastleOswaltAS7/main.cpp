@@ -9,6 +9,7 @@
 #include "primitives.h"
 #include "color.h"
 #include "objects.h"
+#include "tri_intersect.h"
 #include <vector>
 
 #include <iostream>
@@ -238,7 +239,11 @@ void layoutReader(char *filename)
 	while(!feof(fp) && i < meshes)
 	{
 		char MeshFile[255];
-		float scale, rx, ry, rz, tx, ty, tz, ar, ag, ab, dr, dg, db, sr, sg, sb, ka, kd, ks, sexp, r, krefl, krefr;
+		float scale, rx, ry, rz, tx, ty, tz,	/*scale, rotation, and transformation*/
+			ar, ag, ab, dr, dg, db, sr, sg, sb, /*ambient, diffuse, specular reflection*/ 
+			ka, kd, ks, sexp,					/*coefficients, specular exponent*/ 
+			r, krefl, krefr;					/*index of refraction, k reflect & refract */ 
+
 		fscanf(fp, "%c %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
 			&letter, &MeshFile, &scale, &rx, &ry, &rz, &tx, &ty, &tz, &ar, &ag, &ab, &dr, &dg, &db, &sr, &sg, &sb, &ka, &kd, &ks, &sexp, &r, &krefl, &krefr);
 		if(letter == 'M')
