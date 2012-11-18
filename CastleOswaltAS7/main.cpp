@@ -60,6 +60,8 @@ typedef struct LightSource {
 typedef struct ray {
 	point origin;
 	point direction;
+	float r, g, b;
+	int depth;
 } ray;
 
 typedef struct sphere {
@@ -81,6 +83,53 @@ typedef struct sphere {
 	double indRefr;
 	double kRefl;
 	double kRefr;
+	bool intersects(ray r, point &intersection, point &normal, double &distance)
+	{
+		double diffX = r.origin.x - center.x;
+		double diffY = r.origin.y - center.y;
+		double diffZ = r.origin.z - center.z;
+		double a = r.direction.x * r.direction.x + 
+			r.direction.y * r.direction.y +
+			r.direction.z * r.direction.z;
+		double b = 2.0 * (r.direction.x * diffX +
+			r.direction.y * diffY + 
+			r.direction.z * diffZ);
+		double c = diffX * diffX + diffY * diffY + diffZ * diffZ + radius * radius;
+
+		double disc = b * b - 4 * a * c;
+		if (disc < 0)
+			return false;
+		double t = (-b - sqrt(b * b - 4 * a * c)) / (2 * a);
+		if (t >= 0)
+		{
+			double inv = 1.0 / radius;
+			intersection.x = r.origin.x + t * r.direction.x;
+			intersection.y = r.origin.y + t * r.direction.y;
+			intersection.z = r.origin.z + t * r.direction.z;
+			normal.x = (intersection.x - center.x) / inv;
+			normal.y = (intersection.y - center.y) / inv;
+			normal.z = (intersection.z - center.z) / inv;
+			distance = t;
+			return true;
+		}
+
+		t = (-b + sqrt(b * b - 4 * a * c)) / (2 * a);
+
+		if (t < 0)
+			return false;
+
+		double inv = 1.0 / radius;
+		intersection.x = r.origin.x + t * r.direction.x;
+		intersection.y = r.origin.y + t * r.direction.y;
+		intersection.z = r.origin.z + t * r.direction.z;
+		normal.x = (intersection.x - center.x) / inv;
+		normal.y = (intersection.y - center.y) / inv;
+		normal.z = (intersection.z - center.z) / inv;
+		distance = t;
+
+		return true;
+
+	}
 } sphere;
 
 LightSource *lightList;
