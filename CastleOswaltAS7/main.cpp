@@ -46,6 +46,7 @@ public:
 	}
 };
 
+
 typedef struct _faceStruct {
   int v1,v2,v3;
   int n1,n2,n3;
@@ -57,14 +58,49 @@ typedef struct LightSource {
 	float r, g, b;
 } LightSource;
 
+typedef struct ray {
+	point origin;
+	point direction;
+} ray;
+
+typedef struct sphere {
+	point center;
+	double radius;
+	double rSpec;
+	double gSpec;
+	double bSpec;
+	double rDiff;
+	double gDiff;
+	double bDiff;
+	double rAmb;
+	double bAmb;
+	double gAmb;
+	double kSpec;
+	double kAmb;
+	double kDiff;
+	double specExp;
+	double indRefr;
+	double kRefl;
+	double kRefr;
+} sphere;
+
 LightSource *lightList;
+sphere *sphereList;
+int sphereCount, lightCount;
+
 void layoutReader(char *filename)
 {
 	FILE *fp;
 	int lights, spheres, meshes;
 	int i;
 	char letter;
-	float x,y,z,r,g,b;
+	float x,y,z,r,g,b,radius;
+	float rAmb, gAmb, bAmb;
+	float rDiff, gDiff, bDiff;
+	float rSpec, gSpec, bSpec;
+	float kAmb, kDiff, kSpec;
+	float specExp, indRefr;
+	float kRefl, kRefr;
 	int lightType;
 
 	fp = fopen(filename, "r");
@@ -78,6 +114,10 @@ void layoutReader(char *filename)
 		fscanf(fp, "%d %d %d\n", &lights, &spheres, &meshes);
 	}
 	meshCount = meshes;
+	lightCount = lights;
+	sphereCount = spheres;
+
+	sphereList = new sphere[sphereCount];
 	meshList = new MeshObject[meshCount];//(MeshObject *)malloc(sizeof(MeshObject)*meshCount);
 	lightList = (LightSource *)malloc(sizeof(LightSource)*lights);
  
@@ -104,11 +144,45 @@ void layoutReader(char *filename)
 		}
 		i++;
 	}
-
 	i = 0;
-	while(!feof(fp) && i < spheres)
+	while (!feof(fp) && i < spheres)
 	{
-
+		fscanf(fp, "%c %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n", &letter, 
+			&x, &y, &z, &radius, 
+			&rAmb, &gAmb, &bAmb, 
+			&rDiff, &gDiff, &bDiff,
+			&rSpec, &gSpec, &bSpec,
+			&kAmb, &kDiff, &kSpec,
+			&specExp, &indRefr,
+			&kRefl, &kRefr);
+		if (letter == 'S')
+		{
+			sphere s;
+			s.center.x = x;
+			s.center.y = y;
+			s.center.z = z;
+			s.radius = radius;
+			s.rAmb = rAmb;
+			s.gAmb = gAmb;
+			s.bAmb = bAmb;
+			s.rSpec = rSpec;
+			s.gSpec = gSpec;
+			s.bSpec = bSpec;
+			s.rDiff = rDiff;
+			s.gDiff = gDiff;
+			s.bDiff = bDiff;
+			s.kAmb = kAmb;
+			s.kDiff = kDiff;
+			s.kSpec = kSpec;
+			s.specExp = specExp;
+			s.indRefr = indRefr;
+			s.kRefl = kRefl;
+			s.kRefr = kRefr;
+		}
+		else
+		{
+			printf("Expected S but read %c\n", letter);
+		}
 		i++;
 	}
 
@@ -127,9 +201,12 @@ void layoutReader(char *filename)
 		{
 			meshList[i].Load(MeshFile, scale, rx, ry, rz, tx, ty, tz);
 		}
+		else
+		{
+			printf("Expected M but read %c\n", letter);
+		}
 		i++;
 	}
-
 }
 
 
