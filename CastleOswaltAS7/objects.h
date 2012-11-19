@@ -84,22 +84,45 @@ typedef struct LightSource {
 } LightSource;
 
 typedef struct ray {
+	ray() {
+		reflected = NULL;
+		refracted = NULL;
+	}
 	point origin;
 	point direction;
 	float r, g, b;
 	int depth;
 	double krg;
 	double indRefr;
+	bool inside;
 	ray *reflected;
 	ray *refracted;
 
 	void calculateValues()
 	{
-		reflected->calculateValues();
-		refracted->calculateValues();
-		r = r * krg + reflected->r + refracted->r;
-		g = g * krg + reflected->g + refracted->g;
-		b = b * krg + reflected->b + refracted->b;
+		double reflR = 0;
+		double reflG = 0;
+		double reflB = 0;
+		double refrR = 0;
+		double refrG = 0;
+		double refrB = 0;
+		if (reflected)
+		{
+			reflected->calculateValues();
+			reflR = reflected->r;
+			reflG = reflected->g;
+			reflB = reflected->b;
+		}
+		if (refracted)
+		{
+			refracted->calculateValues();
+			refrR = refracted->r;
+			refrG = refracted->g;
+			refrB = refracted->b;
+		}
+		r = r * krg + reflR + refrR;
+		g = g * krg + reflG + refrG;
+		b = b * krg + reflB + refrB;
 	}
 
 } ray;
