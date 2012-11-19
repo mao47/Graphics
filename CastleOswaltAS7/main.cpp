@@ -50,12 +50,6 @@ public:
 };
 
 
-class GraphicsObject 
-{
-public:
-	int x;
-};
-
 typedef struct intersection {
 	int type;
 	GraphicsObject object;
@@ -81,27 +75,12 @@ typedef struct ray {
 	point direction;
 	float r, g, b;
 	int depth;
+	double krg;
 } ray;
 
 typedef struct sphere : GraphicsObject {
 	point center;
 	double radius;
-	double rSpec;
-	double gSpec;
-	double bSpec;
-	double rDiff;
-	double gDiff;
-	double bDiff;
-	double rAmb;
-	double bAmb;
-	double gAmb;
-	double kSpec;
-	double kAmb;
-	double kDiff;
-	double specExp;
-	double indRefr;
-	double kRefl;
-	double kRefr;
 
 	intersection intersects(ray r)
 	{
@@ -293,19 +272,33 @@ void drawRect(double x, double y, double w, double h)
 
 void calcReflectedRay(intersection i, ray r)
 {
-	if (i.object.x) // object is reflecting
+	if (true) // object is reflecting
 	{
 		//calculate reflection vector
 		ray reflected;
-		reflected.origin = i.location;
-		double length = sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
+
+		// normalize normal vector
+		double invlength = 1.0 / sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
+		i.normal.x *= invlength;
+		i.normal.y *= invlength;
+		i.normal.z *= invlength;
 
 		double rdotn = r.direction.x * i.normal.x + r.direction.y * i.normal.y + r.direction.z * i.normal.z;
-		reflected.direction.x	= r.direction.x - 2 * rdotn / length(i.normal)^2 * n
+		reflected.direction.x	= r.direction.x - 2.0 * rdotn * i.normal.x;
+		reflected.direction.y	= r.direction.y - 2.0 * rdotn * i.normal.y;
+		reflected.direction.z	= r.direction.z - 2.0 * rdotn * i.normal.z;
+
+		reflected.origin = i.location;
+
+		r.krg *= i.object.kRefl;
+
+		if (shootRay(reflected))
+		{
+		}
 	}
 }
 
-float shootRay(ray myRay, int depth)
+float shootRay(ray myRay)
 {
 	//get intersections
 	double distance;

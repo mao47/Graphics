@@ -20,7 +20,28 @@ public:
 	int v1, v2, v3;
 };
 
-class MeshObject
+class GraphicsObject 
+{
+public:
+	double rSpec;
+	double gSpec;
+	double bSpec;
+	double rDiff;
+	double gDiff;
+	double bDiff;
+	double rAmb;
+	double bAmb;
+	double gAmb;
+	double kSpec;
+	double kAmb;
+	double kDiff;
+	double specExp;
+	double indRefr;
+	double kRefl;
+	double kRefr;
+};
+
+class MeshObject : GraphicsObject
 {
 public:
 	MeshObject();
