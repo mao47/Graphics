@@ -49,7 +49,7 @@ typedef struct sphere : GraphicsObject {
 		double b = 2.0 * (r.direction.x * diffX +
 			r.direction.y * diffY + 
 			r.direction.z * diffZ);
-		double c = diffX * diffX + diffY * diffY + diffZ * diffZ + radius * radius;
+		double c = diffX * diffX + diffY * diffY + diffZ * diffZ - radius * radius;
 
 		double disc = b * b - 4 * a * c;
 		if (disc < 0)
@@ -90,7 +90,7 @@ typedef struct sphere : GraphicsObject {
 } sphere;
 void calcReflectedRay(intersection i, ray *r);
 void calcRefractedRay(intersection i, ray *r);
-float shootRay(ray *myRay);
+void shootRay(ray *myRay);
 
 LightSource *lightList;
 sphere *sphereList;
@@ -186,6 +186,7 @@ void layoutReader(char *filename)
 			s.indRefr = indRefr;
 			s.kRefl = kRefl;
 			s.kRefr = kRefr;
+			sphereList[i] = s;
 		}
 		else
 		{
@@ -255,8 +256,25 @@ void calcRefractedRay(intersection i, ray *r)
 	i.normal.y *= invlength;
 	i.normal.z *= invlength;
 
-	double ratioIndRefr = r->indRefr / i.object.indRefr;
-	r->indRefr = i.object.indRefr;
+	// normalize incident vector
+	invlength = 1.0 / sqrt(r->direction.x * r->direction.x + r->direction.y * r->direction.y + r->direction.z * r->direction.z);
+	r->direction.x *= invlength;
+	r->direction.y *= invlength;
+	r->direction.z *= invlength;
+
+	double ratioIndRefr;
+	if (r->inside)
+	{
+		ratioIndRefr = 1.0 / r->indRefr;
+		r->indRefr = 1.0;
+	}
+	else
+	{
+		ratioIndRefr = i.object.indRefr / r->indRefr;
+		r->indRefr = i.object.indRefr;
+	}
+
+	r->inside = !r->inside;
 	double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
 	double k = 1.0 - ratioIndRefr * ratioIndRefr * (1.0 - rdotn * rdotn);
 
@@ -267,9 +285,7 @@ void calcRefractedRay(intersection i, ray *r)
 		refracted->direction.z = ratioIndRefr * r->direction.z - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.z;
 		refracted->origin = i.location;
 
-		if (shootRay(refracted))
-		{
-		}
+		shootRay(refracted);
 	}
 
 
@@ -298,49 +314,61 @@ void calcReflectedRay(intersection i, ray *r)
 
 		r->krg *= i.object.kRefl;
 
-		if (shootRay(reflected))
-		{
-		}
+		shootRay(reflected);
 	}
 }
 
-float shootRay(ray *myRay)
+void shootRay(ray *myRay)
 {
+	// normalize ray 
+	double invlength = 1.0 / sqrt(myRay->direction.x * myRay->direction.x + 
+		myRay->direction.y * myRay->direction.y + myRay->direction.z * myRay->direction.z);
+	myRay->direction.x *= invlength;
+	myRay->direction.y *= invlength;
+	myRay->direction.z *= invlength;
+
 	//get intersections
-	double distance;
+	double distance = 10000000000;
 	//spheres
 	int i = 0;
 	intersection objIntersection;
+	objIntersection.type = type_none;
 	for( i = 0; i < sphereCount; i++)
 	{
-		point tempint, tempnorm;
 		double tempdist;
 		intersection inter = sphereList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			if(inter.distance < objIntersection.distance && inter.distance > 0)
+			printf("Found intersection.\n");
+			if(inter.distance < distance && inter.distance > 0)
 			{
+				distance = inter.distance;
 				objIntersection = inter;
 			}
 		}
 	}
 	//meshes
-	
+	/*
 	for(i = 0; i < meshCount; i++)
 	{
 		intersection inter = meshList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			if(inter.distance < objIntersection.distance && inter.distance > 0)
+			if(inter.distance < distance && inter.distance > 0)
 			{
 				objIntersection = inter;
 			}
 		}
 	}
+	*/
 	
+	myRay->r = 0;
+	myRay->g = 0;
+	myRay->b = 0;
+
 	//select closest point and object
 	if(objIntersection.type == type_none)
-		return 0;
+		return;
 
 	//rgb = localIllumination()
 	float r, g, b;
@@ -397,7 +425,11 @@ float shootRay(ray *myRay)
 		b += lightList[i].b * (objIntersection.object.kDiff * objIntersection.object.bDiff
 			* ndotl + objIntersection.object.kSpec * objIntersection.object.bSpec * rdotvexp);
 
+
 	}
+	myRay->r = r;
+	myRay->g = g;
+	myRay->b = b;
 	//myRay->r = objIntersection.object.
 
 	myRay->depth --;
@@ -405,10 +437,7 @@ float shootRay(ray *myRay)
 	{
 		calcReflectedRay(objIntersection, myRay);
 		calcRefractedRay(objIntersection, myRay);
-
-		//return weigthed sum of reflected + refracted + local
 	}
-	return 0;
 }
 
 
@@ -432,11 +461,26 @@ void	display(void)
 
 	printf("width %d, height %d\n", fb->GetWidth(), fb->GetHeight());
 
+	point worldPoint;
+
+	ray *r;
+	float width = fb->GetWidth() / 2.0;
+	float height = fb->GetHeight() / 2.0;
 	for(int y = 0; y < fb->GetHeight(); y++)
 	{
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
-			cl = fb->buffer[x][y].color;
+			r = new ray();
+			r->depth = 1;
+			r->direction.x = 5.0 * (x - width) / width;
+			r->direction.y = 5.0 * (y - height) / height;
+			r->direction.z = -8.0;
+			shootRay(r);
+			r->calculateValues();
+			cl.r = r->r;
+			cl.g = r->g;
+			cl.b = r->b;
+			//cl = fb->buffer[x][y].color;
 			glColor3f(cl.r, cl.g, cl.b);
 
 			drawRect(w*x, h*y, w, h);
