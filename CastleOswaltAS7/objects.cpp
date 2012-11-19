@@ -38,7 +38,10 @@ MeshObject::~MeshObject()
 }
 
 
+intersection MeshObject::intersects(ray myRay)
+{
 
+}
 
 // Load an MeshObject (.obj) file
 void MeshObject::Load(char* file, float s, float rx, float ry, float rz,

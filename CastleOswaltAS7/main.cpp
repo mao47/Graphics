@@ -10,7 +10,6 @@
 #include "color.h"
 #include "objects.h"
 #include "tri_intersect.h"
-#include "structdefs.h"
 #include <vector>
 
 #include <iostream>
