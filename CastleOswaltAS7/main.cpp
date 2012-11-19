@@ -204,9 +204,26 @@ void layoutReader(char *filename)
 			r, krefl, krefr;					/*index of refraction, k reflect & refract */ 
 
 		fscanf(fp, "%c %s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
-			&letter, &MeshFile, &scale, &rx, &ry, &rz, &tx, &ty, &tz, &ar, &ag, &ab, &dr, &dg, &db, &sr, &sg, &sb, &ka, &kd, &ks, &sexp, &r, &krefl, &krefr);
+			&letter, &MeshFile, &scale, &rx, &ry, &rz, &tx, &ty, &tz, &ar, &ag, &ab,
+			&dr, &dg, &db, &sr, &sg, &sb, &ka, &kd, &ks, &sexp, &r, &krefl, &krefr);
 		if(letter == 'M')
 		{
+			meshList[i].rAmb = ar;
+			meshList[i].gAmb = ag;
+			meshList[i].bAmb = ab;
+			meshList[i].rDiff = dr;
+			meshList[i].gDiff = dg;
+			meshList[i].bDiff = db;
+			meshList[i].rSpec = sr;
+			meshList[i].gSpec = sg;
+			meshList[i].bSpec = sb;
+			meshList[i].kAmb = ka;
+			meshList[i].kDiff = kd;
+			meshList[i].kSpec = ks;
+			meshList[i].specExp = sexp;
+			meshList[i].indRefr = r;
+			meshList[i].kRefl = krefl;
+			meshList[i].kRefr = krefr;
 			meshList[i].Load(MeshFile, scale, rx, ry, rz, tx, ty, tz);
 		}
 		else
