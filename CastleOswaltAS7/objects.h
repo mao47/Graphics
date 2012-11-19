@@ -5,6 +5,9 @@
 #define type_circle 1
 #define type_face 2
 
+#define light_direction 0
+#define light_point 1
+
 
 class Vertex
 {

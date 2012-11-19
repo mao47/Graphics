@@ -80,6 +80,11 @@ intersection MeshObject::intersects(ray myRay)
 				tempi.normal.x = (U.j * V.k) - (U.k * V.j);
 				tempi.normal.y = (U.k * V.i) - (U.i * V.k);
 				tempi.normal.z = (U.i * V.j) - (U.j * V.i);
+				float normalMag = sqrt(tempi.normal.x * tempi.normal.x + 
+					tempi.normal.y * tempi.normal.y + tempi.normal.z * tempi.normal.z);
+				tempi.normal.x /= normalMag;
+				tempi.normal.y /= normalMag;
+				tempi.normal.z /= normalMag;
 
 				besti = tempi;
 			}

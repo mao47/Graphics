@@ -325,8 +325,52 @@ float shootRay(ray *myRay)
 	if(objIntersection.type == type_none)
 		return 0;
 
-	//get normal
 	//rgb = localIllumination()
+	float r, g, b;
+	//ambient part independent of light sources
+	r = 0.3 * objIntersection.object.rAmb * objIntersection.object.kAmb;
+	g = 0.3 * objIntersection.object.gAmb * objIntersection.object.kAmb;
+	b = 0.3 * objIntersection.object.bAmb * objIntersection.object.kAmb;
+	
+	//sum over light sources for specular and diffuse
+	for(i = 0; i < lightCount; i ++)
+	{
+		Vector L;
+		if(lightList[i].type == light_direction)
+		{
+			L.i = lightList[i].x;
+			L.j = lightList[i].y;
+			L.k = lightList[i].z;
+		}
+		else //point source
+		{
+			L.i = lightList[i].x - objIntersection.location.x;
+			L.j = lightList[i].y - objIntersection.location.y;
+			L.k = lightList[i].z - objIntersection.location.z;
+		}
+
+		float magnL = sqrt(L.i*L.i + L.j*L.j + L.k*L.k);
+		L.i /= magnL;
+		L.j /= magnL;
+		L.k /= magnL;
+
+
+
+
+		//N dot L for diffuse component
+		float ndotl = L.i*objIntersection.normal.x + L.j*objIntersection.normal.y
+			+ L.k*objIntersection.normal.z;
+
+		Vector R; // perfect reflection vector;
+		R.i = L.i - 2*ndotl*N.i;
+		R.j = L.j - 2*ndotl*N.j;
+		R.k = L.k - 2*ndotl*N.k;
+
+		r += lightList[i].r * (objIntersection.object.kDiff * objIntersection.object.rDiff
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec;
+
+	}
+	myRay->r = objIntersection.object.
 
 	myRay->depth --;
 	if(myRay->depth > 0)
