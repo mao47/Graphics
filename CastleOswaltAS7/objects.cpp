@@ -20,6 +20,15 @@ void Vertex::Normalize()
 	z = z/h;
 	h = 1;
 }
+Vertex Transform(float* matrix, Vertex& point)
+{
+	Vertex temp;
+	temp.x = matrix[0]*point.x + matrix[4]*point.y + matrix[8]*point.z + matrix[12]*point.h;
+	temp.y = matrix[1]*point.x + matrix[5]*point.y + matrix[9]*point.z + matrix[13]*point.h;
+	temp.z = matrix[2]*point.x + matrix[6]*point.y + matrix[10]*point.z + matrix[14]*point.h;
+	temp.h = matrix[3]*point.x + matrix[7]*point.y + matrix[11]*point.z + matrix[15]*point.h;
+	return temp;
+}
 
 MeshObject::MeshObject()
 {
@@ -52,13 +61,13 @@ intersection MeshObject::intersects(ray myRay)
 
 	for(i = 0; i < FaceCount; i ++)
 	{
-		Vertex ver = pVertexList[ pFaceList[i].v1 ];
+		Vertex ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v1 ]);
 		vert0[0] = ver.x;	vert0[1] = ver.y;	vert0[2] = ver.z;
 
-		ver = pVertexList[ pFaceList[i].v2 ];
+		ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v2 ]);
 		vert1[0] = ver.x;	vert1[1] = ver.y;	vert1[2] = ver.z;
 
-		ver = pVertexList[ pFaceList[i].v3 ];
+		ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v3 ]);
 		vert2[0] = ver.x;	vert2[1] = ver.y;	vert2[2] = ver.z;
 
 		if(intersect_triangle(orig, dir, vert0, vert1, vert2, &t, &u, &v) == 1)
@@ -301,3 +310,5 @@ void MeshObject::LocalScale(float s)
 	for(int i = 0; i <= 11; i++)
         ModelMatrix[i] = s*ModelMatrix[i];
 }
+
+

@@ -136,7 +136,7 @@ typedef struct ray {
 } ray;
 
 
-class MeshObject : GraphicsObject
+class MeshObject : public GraphicsObject
 {
 public:
 	MeshObject();
@@ -154,20 +154,20 @@ public:
 	Face* pFaceList;
 	int FaceCount;
 	float ModelMatrix[16];
-	double rSpec;
-	double gSpec;
-	double bSpec;
-	double rDiff;
-	double gDiff;
-	double bDiff;
-	double rAmb;
-	double bAmb;
-	double gAmb;
-	double kSpec;
-	double kAmb;
-	double kDiff;
-	double specExp;
-	double indRefr;
-	double kRefl;
-	double kRefr;
+	//double rSpec;
+	//double gSpec;
+	//double bSpec;
+	//double rDiff;
+	//double gDiff;
+	//double bDiff;
+	//double rAmb;
+	//double bAmb;
+	//double gAmb;
+	//double kSpec;
+	//double kAmb;
+	//double kDiff;
+	//double specExp;
+	//double indRefr;
+	//double kRefl;
+	//double kRefr;
 };

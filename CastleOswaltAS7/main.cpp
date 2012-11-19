@@ -348,7 +348,7 @@ void shootRay(ray *myRay)
 		}
 	}
 	//meshes
-	/*
+	
 	for(i = 0; i < meshCount; i++)
 	{
 		intersection inter = meshList[i].intersects(*myRay);
@@ -360,7 +360,7 @@ void shootRay(ray *myRay)
 			}
 		}
 	}
-	*/
+	
 	
 	myRay->r = 0;
 	myRay->g = 0;
