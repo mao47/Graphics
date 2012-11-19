@@ -354,10 +354,66 @@ void shootRay(ray *myRay)
 		return;
 
 	//rgb = localIllumination()
-	myRay->r = 1.0;
-	myRay->g = 0.0;
-	myRay->b = 0.0;
-	myRay->krg = 1.0;
+	float r, g, b;
+	//ambient part independent of light sources
+	r = 0.3 * objIntersection.object.rAmb * objIntersection.object.kAmb;
+	g = 0.3 * objIntersection.object.gAmb * objIntersection.object.kAmb;
+	b = 0.3 * objIntersection.object.bAmb * objIntersection.object.kAmb;
+	
+	//sum over light sources for specular and diffuse
+	for(i = 0; i < lightCount; i ++)
+	{
+		Vector L;
+		if(lightList[i].type == light_direction)
+		{
+			L.i = lightList[i].x;
+			L.j = lightList[i].y;
+			L.k = lightList[i].z;
+		}
+		else //point source
+		{
+			L.i = lightList[i].x - objIntersection.location.x;
+			L.j = lightList[i].y - objIntersection.location.y;
+			L.k = lightList[i].z - objIntersection.location.z;
+		}
+
+		float magnL = sqrt(L.i*L.i + L.j*L.j + L.k*L.k);
+		L.i /= magnL;
+		L.j /= magnL;
+		L.k /= magnL;
+
+		//N dot L for diffuse component
+		float ndotl = L.i*objIntersection.normal.x + L.j*objIntersection.normal.y
+			+ L.k*objIntersection.normal.z;
+
+		Vector R; // perfect reflection vector;
+		R.i = L.i - 2*ndotl*objIntersection.normal.x;
+		R.j = L.j - 2*ndotl*objIntersection.normal.y;
+		R.k = L.k - 2*ndotl*objIntersection.normal.z;
+
+		Vector V;
+		V.i = myRay->direction.x;
+		V.j = myRay->direction.y;
+		V.k = myRay->direction.z;
+		float magV = sqrt(V.i*V.i + V.j*V.j + V.k*V.k);
+		V.i /= magV;	V.j /= magV;	V.k /= magV;
+
+		float rdotv = V.i*R.i + V.j*R.j + V.k*R.k;
+		float rdotvexp = pow(rdotv, (float)objIntersection.object.specExp);
+
+		r += lightList[i].r * (objIntersection.object.kDiff * objIntersection.object.rDiff
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec * rdotvexp);
+		g += lightList[i].g * (objIntersection.object.kDiff * objIntersection.object.gDiff
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.gSpec * rdotvexp);
+		b += lightList[i].b * (objIntersection.object.kDiff * objIntersection.object.bDiff
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.bSpec * rdotvexp);
+
+
+	}
+	myRay->r = r;
+	myRay->g = g;
+	myRay->b = b;
+	//myRay->r = objIntersection.object.
 
 	myRay->depth --;
 	if(myRay->depth > 0)
