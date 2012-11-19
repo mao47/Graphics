@@ -65,6 +65,7 @@ typedef struct sphere : GraphicsObject {
 			i.normal.y = (i.location.y - center.y) / inv;
 			i.normal.z = (i.location.z - center.z) / inv;
 			i.distance = t;
+			i.object = (GraphicsObject)*this;
 			i.type = type_circle;
 			return i;
 		}
@@ -383,9 +384,9 @@ void shootRay(ray *myRay)
 		Vector L;
 		if(lightList[i].type == light_direction)
 		{
-			L.i = lightList[i].x;
-			L.j = lightList[i].y;
-			L.k = lightList[i].z;
+			L.i = -lightList[i].x;
+			L.j = -lightList[i].y;
+			L.k = -lightList[i].z;
 		}
 		else //point source
 		{
@@ -400,8 +401,8 @@ void shootRay(ray *myRay)
 		L.k /= magnL;
 
 		//N dot L for diffuse component
-		float ndotl = L.i*objIntersection.normal.x + L.j*objIntersection.normal.y
-			+ L.k*objIntersection.normal.z;
+		float ndotl = (L.i*objIntersection.normal.x + L.j*objIntersection.normal.y
+			+ L.k*objIntersection.normal.z);
 
 		Vector R; // perfect reflection vector;
 		R.i = L.i - 2*ndotl*objIntersection.normal.x;
@@ -409,13 +410,13 @@ void shootRay(ray *myRay)
 		R.k = L.k - 2*ndotl*objIntersection.normal.z;
 
 		Vector V;
-		V.i = myRay->direction.x;
-		V.j = myRay->direction.y;
-		V.k = myRay->direction.z;
+		V.i = -myRay->direction.x;
+		V.j = -myRay->direction.y;
+		V.k = -myRay->direction.z;
 		float magV = sqrt(V.i*V.i + V.j*V.j + V.k*V.k);
 		V.i /= magV;	V.j /= magV;	V.k /= magV;
 
-		float rdotv = V.i*R.i + V.j*R.j + V.k*R.k;
+		float rdotv = (V.i*R.i + V.j*R.j + V.k*R.k);
 		float rdotvexp = pow(rdotv, (float)objIntersection.object.specExp);
 
 		r += lightList[i].r * (objIntersection.object.kDiff * objIntersection.object.rDiff
