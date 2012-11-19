@@ -84,6 +84,7 @@ typedef struct sphere : GraphicsObject {
 		i.normal.y = (i.location.y - center.y) / inv;
 		i.normal.z = (i.location.z - center.z) / inv;
 		i.distance = t;
+		i.object = (GraphicsObject)*this;
 
 		return i;
 
@@ -231,14 +232,40 @@ void drawRect(double x, double y, double w, double h)
 
 void calcRefractedRay(intersection i, ray *r)
 {
-	return;
+	ray *refracted = new ray();
+
+	// normalize normal vector
+	double invlength = 1.0 / sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
+	i.normal.x *= invlength;
+	i.normal.y *= invlength;
+	i.normal.z *= invlength;
+
+	double ratioIndRefr = r->indRefr / i.object.indRefr;
+	r->indRefr = i.object.indRefr;
+	double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
+	double k = 1.0 - ratioIndRefr * ratioIndRefr * (1.0 - rdotn * rdotn);
+
+	if (k >= 0.0)
+	{
+		refracted->direction.x = ratioIndRefr * r->direction.x - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.x;
+		refracted->direction.y = ratioIndRefr * r->direction.y - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.y;
+		refracted->direction.z = ratioIndRefr * r->direction.z - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.z;
+		refracted->origin = i.location;
+
+		if (shootRay(refracted))
+		{
+		}
+	}
+
+
 }
+
 void calcReflectedRay(intersection i, ray *r)
 {
 	if (true) // object is reflecting
 	{
 		//calculate reflection vector
-		ray * reflected;
+		ray * reflected = new ray();
 
 		// normalize normal vector
 		double invlength = 1.0 / sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
@@ -283,10 +310,10 @@ float shootRay(ray *myRay)
 		}
 	}
 	//meshes
-	/*
+	
 	for(i = 0; i < meshCount; i++)
 	{
-		intersection inter = meshList[i].intersects(myRay);
+		intersection inter = meshList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
 			if(inter.distance < objIntersection.distance && inter.distance > 0)
@@ -295,9 +322,9 @@ float shootRay(ray *myRay)
 			}
 		}
 	}
-	*/
+	
 	//select closest point and object
-	//if(didIntersect == 0)
+	if(objIntersection.type == type_none)
 		return 0;
 
 	//get normal
@@ -311,7 +338,7 @@ float shootRay(ray *myRay)
 
 		//return weigthed sum of reflected + refracted + local
 	}
-
+	return 0;
 }
 
 
