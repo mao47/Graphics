@@ -150,6 +150,7 @@ public:
 	void LocalScale(float s);
 	Vertex* pBoundingBox;
 	Vertex* pVertexList;
+	Vertex* pNormList;
 	int VertexCount;
 	Face* pFaceList;
 	int FaceCount;

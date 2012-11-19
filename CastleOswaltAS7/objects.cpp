@@ -204,9 +204,11 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 		cout << "Failed to load " << file << "." << endl;
 	else
 		cout << "Successfully loaded " << file << "." << endl;
-
+	int *normCount;
 	char DataType;
-	float a, b, c;
+	float a, b, c, len;
+	int i;
+	Vertex v1, v2, crossP;
 
 	// Scan the file and count the faces and vertices
 	VertexCount = FaceCount = 0;
@@ -220,6 +222,7 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 	}
 	pVertexList = new Vertex[VertexCount];
 	pFaceList = new Face[FaceCount];
+	pNormList = new Vertex[VertexCount];
 
 	fseek(pObjectFile, 0L, SEEK_SET);
 
@@ -271,6 +274,51 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 		}
 	}
 
+	normCount = (int *)malloc(sizeof(int)*VertexCount);
+	for(i = 0; i < VertexCount; i++)
+	{
+		pNormList[i].x = pNormList[i].y = pNormList[i].z = 0.0;
+		normCount[i] = 0;
+	}
+	for(i = 0; i < FaceCount; i++)
+	{
+		v1.x = pVertexList[pFaceList[i].v2].x - pVertexList[pFaceList[i].v1].x;
+		v1.y = pVertexList[pFaceList[i].v2].y - pVertexList[pFaceList[i].v1].y;
+		v1.z = pVertexList[pFaceList[i].v2].z - pVertexList[pFaceList[i].v1].z;
+		v2.x = pVertexList[pFaceList[i].v3].x - pVertexList[pFaceList[i].v2].x;
+		v2.y = pVertexList[pFaceList[i].v3].y - pVertexList[pFaceList[i].v2].y;
+		v2.z = pVertexList[pFaceList[i].v3].z - pVertexList[pFaceList[i].v2].z;
+
+		
+      crossP.x = v1.y*v2.z - v1.z*v2.y;
+      crossP.y = v1.z*v2.x - v1.x*v2.z;
+      crossP.z = v1.x*v2.y - v1.y*v2.x;
+
+      len = sqrt(crossP.x*crossP.x + crossP.y*crossP.y + crossP.z*crossP.z);
+
+      crossP.x = -crossP.x/len;
+      crossP.y = -crossP.y/len;
+      crossP.z = -crossP.z/len;
+
+      pNormList[pFaceList[i].v1].x = pNormList[pFaceList[i].v1].x + crossP.x;
+      pNormList[pFaceList[i].v1].y = pNormList[pFaceList[i].v1].y + crossP.y;
+      pNormList[pFaceList[i].v1].z = pNormList[pFaceList[i].v1].z + crossP.z;
+      pNormList[pFaceList[i].v2].x = pNormList[pFaceList[i].v2].x + crossP.x;
+      pNormList[pFaceList[i].v2].y = pNormList[pFaceList[i].v2].y + crossP.y;
+      pNormList[pFaceList[i].v2].z = pNormList[pFaceList[i].v2].z + crossP.z;
+      pNormList[pFaceList[i].v3].x = pNormList[pFaceList[i].v3].x + crossP.x;
+      pNormList[pFaceList[i].v3].y = pNormList[pFaceList[i].v3].y + crossP.y;
+      pNormList[pFaceList[i].v3].z = pNormList[pFaceList[i].v3].z + crossP.z;
+      normCount[pFaceList[i].v1]++;
+      normCount[pFaceList[i].v2]++;
+      normCount[pFaceList[i].v3]++;
+	}
+	for (i = 0;i < VertexCount;i++)
+    {
+      pNormList[i].x = pNormList[i].x / (float)normCount[i];
+      pNormList[i].y = pNormList[i].y / (float)normCount[i];
+      pNormList[i].z = pNormList[i].z / (float)normCount[i];
+    }
 	// Initialize the bounding box vertices
 	pBoundingBox[0].x = MinimumX; pBoundingBox[0].y = MinimumY; pBoundingBox[0].z = MinimumZ;
 	pBoundingBox[1].x = MaximumX; pBoundingBox[1].y = MinimumY; pBoundingBox[1].z = MinimumZ;
