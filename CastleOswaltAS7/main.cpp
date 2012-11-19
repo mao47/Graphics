@@ -359,9 +359,9 @@ float shootRay(ray *myRay)
 			+ L.k*objIntersection.normal.z;
 
 		Vector R; // perfect reflection vector;
-		R.i = L.i - 2*ndotl*N.i;
-		R.j = L.j - 2*ndotl*N.j;
-		R.k = L.k - 2*ndotl*N.k;
+		R.i = L.i - 2*ndotl*objIntersection.normal.x;
+		R.j = L.j - 2*ndotl*objIntersection.normal.y;
+		R.k = L.k - 2*ndotl*objIntersection.normal.z;
 
 		Vector V;
 		V.i = myRay->direction.x;
@@ -371,18 +371,17 @@ float shootRay(ray *myRay)
 		V.i /= magV;	V.j /= magV;	V.k /= magV;
 
 		float rdotv = V.i*R.i + V.j*R.j + V.k*R.k;
-		float rdotvexp = pow(rdotv, objIntersection.object.specExp);
-
+		float rdotvexp = pow(rdotv, (float)objIntersection.object.specExp);
 
 		r += lightList[i].r * (objIntersection.object.kDiff * objIntersection.object.rDiff
-			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec * rdotvexp;
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec * rdotvexp);
 		g += lightList[i].g * (objIntersection.object.kDiff * objIntersection.object.gDiff
-			* ndotl + objIntersection.object.kSpec * objIntersection.object.gSpec * rdotvexp;
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.gSpec * rdotvexp);
 		b += lightList[i].b * (objIntersection.object.kDiff * objIntersection.object.bDiff
-			* ndotl + objIntersection.object.kSpec * objIntersection.object.bSpec * rdotvexp;
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.bSpec * rdotvexp);
 
 	}
-	myRay->r = objIntersection.object.
+	//myRay->r = objIntersection.object.
 
 	myRay->depth --;
 	if(myRay->depth > 0)

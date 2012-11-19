@@ -17,11 +17,15 @@ public:
 	float x, y, z, h;
 };
 
-class Vector
+//class Vector
+//{
+//public:
+//	float i, j, k;
+//};
+typedef struct Vector
 {
-public:
 	float i, j, k;
-};
+} Vector;
 
 class Face
 {
