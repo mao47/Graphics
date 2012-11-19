@@ -17,9 +17,7 @@
 
 #define ON 1
 #define OFF 0
-#define type_none 0
-#define type_circle 1
-#define type_face 2
+
 
 using namespace std;
 
