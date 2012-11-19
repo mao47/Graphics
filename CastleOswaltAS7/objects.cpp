@@ -69,7 +69,7 @@ intersection MeshObject::intersects(ray myRay)
 			if((besti.type == type_none || besti.distance > tempi.distance) && tempi.distance > 0)
 			{
 				//new best intersection
-				//tempi.object = (GraphicsObject)this;
+				tempi.object = (GraphicsObject)*this;
 				tempi.location.x = (1-u-v)*vert0[0] + u*vert1[0] + v*vert2[0];
 				tempi.location.y = (1-u-v)*vert0[1] + u*vert1[1] + v*vert2[1];
 				tempi.location.z = (1-u-v)*vert0[2] + u*vert1[2] + v*vert2[2];
@@ -85,6 +85,7 @@ intersection MeshObject::intersects(ray myRay)
 			}
 		}
 	}
+	return besti;
 }
 
 // Load an MeshObject (.obj) file
