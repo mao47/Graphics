@@ -24,6 +24,7 @@
 using namespace std;
 
 
+
 // Global variables
 int window_width, window_height;    // Window dimensions
 
@@ -70,13 +71,17 @@ typedef struct LightSource {
 	float r, g, b;
 } LightSource;
 
-typedef struct ray {
+struct ray;
+
+struct ray {
 	point origin;
 	point direction;
 	float r, g, b;
 	int depth;
 	double krg;
-} ray;
+	ray *reflected;
+	ray *refracted;
+};
 
 typedef struct sphere : GraphicsObject {
 	point center;
@@ -107,9 +112,9 @@ typedef struct sphere : GraphicsObject {
 			i.location.x = r.origin.x + t * r.direction.x;
 			i.location.y = r.origin.y + t * r.direction.y;
 			i.location.z = r.origin.z + t * r.direction.z;
-			i.normal.x = (intersection.x - center.x) / inv;
-			i.normal.y = (intersection.y - center.y) / inv;
-			i.normal.z = (intersection.z - center.z) / inv;
+			i.normal.x = (i.location.x - center.x) / inv;
+			i.normal.y = (i.location.y - center.y) / inv;
+			i.normal.z = (i.location.z - center.z) / inv;
 			i.distance = t;
 			i.type = type_circle;
 			return i;
@@ -124,15 +129,18 @@ typedef struct sphere : GraphicsObject {
 		i.location.x = r.origin.x + t * r.direction.x;
 		i.location.y = r.origin.y + t * r.direction.y;
 		i.location.z = r.origin.z + t * r.direction.z;
-		i.normal.x = (intersection.x - center.x) / inv;
-		i.normal.y = (intersection.y - center.y) / inv;
-		i.normal.z = (intersection.z - center.z) / inv;
+		i.normal.x = (i.location.x - center.x) / inv;
+		i.normal.y = (i.location.y - center.y) / inv;
+		i.normal.z = (i.location.z - center.z) / inv;
 		i.distance = t;
 
 		return i;
 
 	}
 } sphere;
+void calcReflectedRay(intersection i, ray *r);
+void calcRefractedRay(intersection i, ray *r);
+float shootRay(ray *myRay);
 
 LightSource *lightList;
 sphere *sphereList;
@@ -270,12 +278,16 @@ void drawRect(double x, double y, double w, double h)
 }
 
 
-void calcReflectedRay(intersection i, ray r)
+void calcRefractedRay(intersection i, ray *r)
+{
+	return;
+}
+void calcReflectedRay(intersection i, ray *r)
 {
 	if (true) // object is reflecting
 	{
 		//calculate reflection vector
-		ray reflected;
+		ray * reflected;
 
 		// normalize normal vector
 		double invlength = 1.0 / sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
@@ -283,14 +295,15 @@ void calcReflectedRay(intersection i, ray r)
 		i.normal.y *= invlength;
 		i.normal.z *= invlength;
 
-		double rdotn = r.direction.x * i.normal.x + r.direction.y * i.normal.y + r.direction.z * i.normal.z;
-		reflected.direction.x	= r.direction.x - 2.0 * rdotn * i.normal.x;
-		reflected.direction.y	= r.direction.y - 2.0 * rdotn * i.normal.y;
-		reflected.direction.z	= r.direction.z - 2.0 * rdotn * i.normal.z;
+		double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
+		reflected->direction.x	= r->direction.x - 2.0 * rdotn * i.normal.x;
+		reflected->direction.y	= r->direction.y - 2.0 * rdotn * i.normal.y;
+		reflected->direction.z	= r->direction.z - 2.0 * rdotn * i.normal.z;
 
-		reflected.origin = i.location;
+		reflected->origin = i.location;
+		r->reflected = reflected;
 
-		r.krg *= i.object.kRefl;
+		r->krg *= i.object.kRefl;
 
 		if (shootRay(reflected))
 		{
@@ -298,7 +311,7 @@ void calcReflectedRay(intersection i, ray r)
 	}
 }
 
-float shootRay(ray myRay)
+float shootRay(ray *myRay)
 {
 	//get intersections
 	double distance;
@@ -309,7 +322,7 @@ float shootRay(ray myRay)
 	{
 		point tempint, tempnorm;
 		double tempdist;
-		intersection inter = sphereList[i].intersects(myRay);
+		intersection inter = sphereList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
 			if(inter.distance < distance && inter.distance > 0)
@@ -326,11 +339,11 @@ float shootRay(ray myRay)
 	//get normal
 	//rgb = localIllumination()
 
-	myRay.depth --;
-	if(depth > 0)
+	myRay->depth --;
+	if(myRay->depth > 0)
 	{
 		calcReflectedRay(objIntersection, myRay);
-		calcRefractedRay();
+		calcRefractedRay(objIntersection, myRay);
 
 		//return weigthed sum of reflected + refracted + local
 	}
