@@ -7,6 +7,11 @@
 
 using namespace std;
 
+//array defining triangles for bounding box intersection
+int triangles[12][3];
+int boxInit = 0;
+
+
 Vertex::Vertex()
 {
 	x = y = z = 0;
@@ -30,6 +35,71 @@ Vertex Transform(float* matrix, Vertex& point)
 	return temp;
 }
 
+void initBoundBoxTriangles()
+{
+	if(boxInit != 0 )
+	{
+		return;
+	}
+	//bottom
+	triangles[0][0] = 0;
+	triangles[0][1] = 1;
+	triangles[0][2] = 2;
+
+	triangles[1][0] = 2;
+	triangles[1][1] = 3;
+	triangles[1][2] = 4;
+
+	//top
+	triangles[2][0] = 4;
+	triangles[2][1] = 5;
+	triangles[2][2] = 6;
+
+	triangles[3][0] = 5;
+	triangles[3][1] = 6;
+	triangles[3][2] = 7;
+
+	//front
+	triangles[4][0] = 0;
+	triangles[4][1] = 2;
+	triangles[4][2] = 4;
+
+	triangles[5][0] = 2;
+	triangles[5][1] = 4;
+	triangles[5][2] = 6;
+
+	//back
+	triangles[6][0] = 1;
+	triangles[6][1] = 3;
+	triangles[6][2] = 5;
+
+	triangles[7][0] = 3;
+	triangles[7][1] = 5;
+	triangles[7][2] = 7;
+
+	//left
+	triangles[8][0] = 0;
+	triangles[8][1] = 1;
+	triangles[8][2] = 5;
+
+	triangles[9][0] = 0;
+	triangles[9][1] = 4;
+	triangles[9][2] = 5;
+
+	//right
+	triangles[10][0] = 2;
+	triangles[10][1] = 3;
+	triangles[10][2] = 6;
+
+	triangles[11][0] = 3;
+	triangles[11][1] = 6;
+	triangles[11][2] = 7;
+	
+	
+	boxInit = 1;
+
+}
+
 MeshObject::MeshObject()
 {
 	pBoundingBox = new Vertex[8];
@@ -50,6 +120,8 @@ MeshObject::~MeshObject()
 
 intersection MeshObject::intersects(ray myRay)
 {
+	initBoundBoxTriangles();
+
 	int i = 0;
 	intersection besti;
 	besti.type = type_none;
@@ -58,6 +130,27 @@ intersection MeshObject::intersects(ray myRay)
 		
 	orig[0] = myRay.origin.x; orig[1] = myRay.origin.y; orig[2] = myRay.origin.z;
 	dir[0] = myRay.direction.x; dir[1] = myRay.direction.y; dir[2] = myRay.direction.z;
+
+	//first check intersection with 12 bounding box triangles to avoid checking every polygon of object
+	int interBox = 0;
+	for(i = 0; i < 12; i ++)
+	{
+		Vertex ver = Transform(ModelMatrix, pBoundingBox[ triangles[i][0] ]);
+		vert0[0] = ver.x;	vert0[1] = ver.y;	vert0[2] = ver.z;
+				
+		ver = Transform(ModelMatrix, pBoundingBox[ triangles[i][1] ]);
+		vert1[0] = ver.x;	vert1[1] = ver.y;	vert1[2] = ver.z;
+
+		ver = Transform(ModelMatrix, pBoundingBox[ triangles[i][2] ]);
+		vert2[0] = ver.x;	vert2[1] = ver.y;	vert2[2] = ver.z;
+
+		if(intersect_triangle(orig, dir, vert0, vert1, vert2, &t, &u, &v) == 1 )
+		{
+			interBox = 1;
+			break;
+		}
+	}
+	if(interBox == 0) return besti;
 
 	for(i = 0; i < FaceCount; i ++)
 	{
