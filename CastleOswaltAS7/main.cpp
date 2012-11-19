@@ -340,7 +340,7 @@ void shootRay(ray *myRay)
 		intersection inter = sphereList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			printf("Found intersection.\n");
+			//printf("Found intersection.\n");
 			if(inter.distance < distance && inter.distance > 0)
 			{
 				distance = inter.distance;
@@ -349,7 +349,7 @@ void shootRay(ray *myRay)
 		}
 	}
 	//meshes
-	/*
+	
 	for(i = 0; i < meshCount; i++)
 	{
 		intersection inter = meshList[i].intersects(*myRay);
@@ -361,7 +361,7 @@ void shootRay(ray *myRay)
 			}
 		}
 	}
-	*/
+	
 	
 	myRay->r = 0;
 	myRay->g = 0;
