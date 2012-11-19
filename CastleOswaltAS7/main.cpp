@@ -17,6 +17,9 @@
 
 #define ON 1
 #define OFF 0
+#define type_none 0
+#define type_circle 1
+#define type_face 2
 
 using namespace std;
 
@@ -47,6 +50,21 @@ public:
 };
 
 
+class GraphicsObject 
+{
+public:
+	int x;
+};
+
+typedef struct intersection {
+	int type;
+	GraphicsObject object;
+	point normal;
+	point location;
+	double distance;
+} intersection;
+
+
 typedef struct _faceStruct {
   int v1,v2,v3;
   int n1,n2,n3;
@@ -65,7 +83,7 @@ typedef struct ray {
 	int depth;
 } ray;
 
-typedef struct sphere {
+typedef struct sphere : GraphicsObject {
 	point center;
 	double radius;
 	double rSpec;
@@ -84,8 +102,11 @@ typedef struct sphere {
 	double indRefr;
 	double kRefl;
 	double kRefr;
-	bool intersects(ray r, point &intersection, point &normal, double &distance)
+
+	intersection intersects(ray r)
 	{
+		intersection i;
+		i.type = type_none;
 		double diffX = r.origin.x - center.x;
 		double diffY = r.origin.y - center.y;
 		double diffZ = r.origin.z - center.z;
@@ -99,36 +120,37 @@ typedef struct sphere {
 
 		double disc = b * b - 4 * a * c;
 		if (disc < 0)
-			return false;
+			return i;
 		double t = (-b - sqrt(b * b - 4 * a * c)) / (2 * a);
 		if (t >= 0)
 		{
 			double inv = 1.0 / radius;
-			intersection.x = r.origin.x + t * r.direction.x;
-			intersection.y = r.origin.y + t * r.direction.y;
-			intersection.z = r.origin.z + t * r.direction.z;
-			normal.x = (intersection.x - center.x) / inv;
-			normal.y = (intersection.y - center.y) / inv;
-			normal.z = (intersection.z - center.z) / inv;
-			distance = t;
-			return true;
+			i.location.x = r.origin.x + t * r.direction.x;
+			i.location.y = r.origin.y + t * r.direction.y;
+			i.location.z = r.origin.z + t * r.direction.z;
+			i.normal.x = (intersection.x - center.x) / inv;
+			i.normal.y = (intersection.y - center.y) / inv;
+			i.normal.z = (intersection.z - center.z) / inv;
+			i.distance = t;
+			i.type = type_circle;
+			return i;
 		}
 
 		t = (-b + sqrt(b * b - 4 * a * c)) / (2 * a);
 
 		if (t < 0)
-			return false;
+			return i;
 
 		double inv = 1.0 / radius;
-		intersection.x = r.origin.x + t * r.direction.x;
-		intersection.y = r.origin.y + t * r.direction.y;
-		intersection.z = r.origin.z + t * r.direction.z;
-		normal.x = (intersection.x - center.x) / inv;
-		normal.y = (intersection.y - center.y) / inv;
-		normal.z = (intersection.z - center.z) / inv;
-		distance = t;
+		i.location.x = r.origin.x + t * r.direction.x;
+		i.location.y = r.origin.y + t * r.direction.y;
+		i.location.z = r.origin.z + t * r.direction.z;
+		i.normal.x = (intersection.x - center.x) / inv;
+		i.normal.y = (intersection.y - center.y) / inv;
+		i.normal.z = (intersection.z - center.z) / inv;
+		i.distance = t;
 
-		return true;
+		return i;
 
 	}
 } sphere;
@@ -269,45 +291,59 @@ void drawRect(double x, double y, double w, double h)
 }
 
 
+void calcReflectedRay(intersection i, ray r)
+{
+	if (i.object.x) // object is reflecting
+	{
+		//calculate reflection vector
+		ray reflected;
+		reflected.origin = i.location;
+		double length = sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
+
+		double rdotn = r.direction.x * i.normal.x + r.direction.y * i.normal.y + r.direction.z * i.normal.z;
+		reflected.direction.x	= r.direction.x - 2 * rdotn / length(i.normal)^2 * n
+	}
+}
+
 float shootRay(ray myRay, int depth)
 {
 	//get intersections
 	double distance;
-	point intersection, normal;
 	//spheres
 	int i = 0;
+	intersection objIntersection;
 	for( i = 0; i < sphereCount; i++)
 	{
 		point tempint, tempnorm;
 		double tempdist;
-		if(sphereList[i].intersects(myRay, &tempint, &tempnorm, &tempdist)
+		intersection inter = sphereList[i].intersects(myRay);
+		if(inter.type != type_none)
 		{
-			if(tempdist < distance && tempdist > 0)
+			if(inter.distance < distance && inter.distance > 0)
 			{
-				distance = tempdist;
-				intersection = tempint;
-				normal = tempnorm;
+				objIntersection = inter;
 			}
 		}
 	}
 	//meshes
 	//select closest point and object
-	if(didIntersect == 0)
+	//if(didIntersect == 0)
 		return 0;
 
 	//get normal
 	//rgb = localIllumination()
 
-	depth --;
+	myRay.depth --;
 	if(depth > 0)
 	{
-		ray reflected = calcReflectedRay();
-		ray refracted = calcRefractedRay();
+		calcReflectedRay(objIntersection, myRay);
+		calcRefractedRay();
 
 		//return weigthed sum of reflected + refracted + local
 	}
 
 }
+
 
 // The display function. It is called whenever the window needs
 // redrawing (ie: overlapping window moves, resize, maximize)
