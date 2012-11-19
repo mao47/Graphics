@@ -83,6 +83,8 @@ typedef struct ray {
 	float r, g, b;
 	int depth;
 	double krg;
+	ray *reflected;
+	ray *refracted;
 } ray;
 
 
