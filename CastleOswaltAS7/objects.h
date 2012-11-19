@@ -1,5 +1,11 @@
 #pragma once
 
+
+#define type_none 0
+#define type_circle 1
+#define type_face 2
+
+
 class Vertex
 {
 public:

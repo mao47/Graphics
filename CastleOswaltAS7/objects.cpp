@@ -3,6 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include "objects.h"
+#include "tri_intersect.h"
 
 using namespace std;
 
@@ -40,7 +41,50 @@ MeshObject::~MeshObject()
 
 intersection MeshObject::intersects(ray myRay)
 {
+	int i = 0;
+	intersection besti;
+	besti.type = type_none;
+	float orig[3], dir[3], vert0[3], vert1[3], vert2[3];
+	float t, u, v;
+		
+	orig[0] = myRay.origin.x; orig[1] = myRay.origin.y; orig[2] = myRay.origin.z;
+	dir[0] = myRay.direction.x; dir[1] = myRay.direction.y; dir[2] = myRay.direction.z;
 
+	for(i = 0; i < FaceCount; i ++)
+	{
+		Vertex ver = pVertexList[ pFaceList[i].v1 ];
+		vert0[0] = ver.x;	vert0[1] = ver.y;	vert0[2] = ver.z;
+
+		ver = pVertexList[ pFaceList[i].v2 ];
+		vert1[0] = ver.x;	vert1[1] = ver.y;	vert1[2] = ver.z;
+
+		ver = pVertexList[ pFaceList[i].v3 ];
+		vert2[0] = ver.x;	vert2[1] = ver.y;	vert2[2] = ver.z;
+
+		if(intersect_triangle(orig, dir, vert0, vert1, vert2, &t, &u, &v) == 1)
+		{
+			intersection tempi;
+			tempi.type = type_face;
+			tempi.distance = (double)t;
+			if((besti.type == type_none || besti.distance > tempi.distance) && tempi.distance > 0)
+			{
+				//new best intersection
+				//tempi.object = (GraphicsObject)this;
+				tempi.location.x = (1-u-v)*vert0[0] + u*vert1[0] + v*vert2[0];
+				tempi.location.y = (1-u-v)*vert0[1] + u*vert1[1] + v*vert2[1];
+				tempi.location.z = (1-u-v)*vert0[2] + u*vert1[2] + v*vert2[2];
+
+				Vector U, V;
+				U.i = vert1[0]-vert0[0]; U.j = vert1[1]-vert0[1]; U.k = vert1[2]-vert0[2];
+				V.i = vert2[0]-vert0[0]; V.j = vert2[1]-vert0[1]; V.k = vert2[2]-vert0[2];
+				tempi.normal.x = (U.j * V.k) - (U.k * V.j);
+				tempi.normal.y = (U.k * V.i) - (U.i * V.k);
+				tempi.normal.z = (U.i * V.j) - (U.j * V.i);
+
+				besti = tempi;
+			}
+		}
+	}
 }
 
 // Load an MeshObject (.obj) file
