@@ -128,6 +128,7 @@
     <ClInclude Include="glut.h" />
     <ClInclude Include="objects.h" />
     <ClInclude Include="primitives.h" />
+    <ClInclude Include="structdefs.h" />
     <ClInclude Include="tri_intersect.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -37,6 +37,9 @@ MeshObject::~MeshObject()
 	delete [] pFaceList;
 }
 
+
+
+
 // Load an MeshObject (.obj) file
 void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 				  float tx, float ty, float tz)

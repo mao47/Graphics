@@ -10,6 +10,7 @@
 #include "color.h"
 #include "objects.h"
 #include "tri_intersect.h"
+#include "structdefs.h"
 #include <vector>
 
 #include <iostream>
@@ -33,55 +34,6 @@ const int INITIAL_RES = 400;
 FrameBuffer* fb;
 MeshObject* meshList;
 int meshCount;
-
-class point
-{
-public:
-	double x,y,z,w;
-
-	point(){ x = 0; y = 0; z = 0; w = 1;}
-	point(double xa, double ya, double za)
-	{
-		x = xa; y = ya; z = za; w = 1.0;
-	}
-	point(double xa, double ya, double za, double wa)
-	{
-		x = xa; y = ya; z = za; w = wa;
-	}
-};
-
-
-typedef struct intersection {
-	int type;
-	GraphicsObject object;
-	point normal;
-	point location;
-	double distance;
-} intersection;
-
-
-typedef struct _faceStruct {
-  int v1,v2,v3;
-  int n1,n2,n3;
-} faceStruct;
-
-typedef struct LightSource {
-	int type;
-	float x, y, z;
-	float r, g, b;
-} LightSource;
-
-struct ray;
-
-struct ray {
-	point origin;
-	point direction;
-	float r, g, b;
-	int depth;
-	double krg;
-	ray *reflected;
-	ray *refracted;
-};
 
 typedef struct sphere : GraphicsObject {
 	point center;
@@ -325,13 +277,26 @@ float shootRay(ray *myRay)
 		intersection inter = sphereList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			if(inter.distance < distance && inter.distance > 0)
+			if(inter.distance < objIntersection.distance && inter.distance > 0)
 			{
 				objIntersection = inter;
 			}
 		}
 	}
 	//meshes
+	/*
+	for(i = 0; i < meshCount; i++)
+	{
+		intersection inter = meshList[i].intersects(myRay);
+		if(inter.type != type_none)
+		{
+			if(inter.distance < objIntersection.distance && inter.distance > 0)
+			{
+				objIntersection = inter;
+			}
+		}
+	}
+	*/
 	//select closest point and object
 	//if(didIntersect == 0)
 		return 0;
