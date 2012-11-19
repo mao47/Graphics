@@ -47,5 +47,8 @@
     <ClInclude Include="tri_intersect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="structdefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
