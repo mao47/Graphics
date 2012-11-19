@@ -103,6 +103,7 @@ typedef struct ray {
 	double indRefr;
 	bool inside;
 	ray *reflected;
+	float kRefl, kRefr;
 	ray *refracted;
 
 	void calculateValues()
@@ -127,9 +128,9 @@ typedef struct ray {
 			refrG = refracted->g;
 			refrB = refracted->b;
 		}
-		r = r /** krg*/ + reflR + refrR;
-		g = g/* * krg*/ + reflG + refrG;
-		b = b/* * krg*/ + reflB + refrB;
+		r = r * krg + reflR * kRefl + refrR * kRefr;
+		g = g * krg + reflG * kRefl + refrG * kRefr;
+		b = b * krg + reflB * kRefl + refrB * kRefr;
 	}
 
 } ray;

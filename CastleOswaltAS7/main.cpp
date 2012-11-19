@@ -312,8 +312,8 @@ void calcReflectedRay(intersection i, ray *r)
 
 		reflected->origin = i.location;
 		r->reflected = reflected;
-
-		r->krg *= i.object.kRefl;
+		r->kRefl = i.object.kRefl;
+		r->kRefr = i.object.kRefr;
 
 		shootRay(reflected);
 	}
@@ -340,7 +340,6 @@ void shootRay(ray *myRay)
 		intersection inter = sphereList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			printf("Found intersection.\n");
 			if(inter.distance < distance && inter.distance > 0)
 			{
 				distance = inter.distance;
@@ -431,6 +430,7 @@ void shootRay(ray *myRay)
 	myRay->r = r;
 	myRay->g = g;
 	myRay->b = b;
+	myRay->krg = 1.0;// / (objIntersection.distance * objIntersection.distance);
 	//myRay->r = objIntersection.object.
 
 	myRay->depth --;
@@ -472,7 +472,7 @@ void	display(void)
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
-			r->depth = 1;
+			r->depth = 3;
 			r->direction.x = 5.0 * (x - width) / width;
 			r->direction.y = 5.0 * (y - height) / height;
 			r->direction.z = -8.0;
@@ -553,7 +553,7 @@ void	keyboard(unsigned char key, int x, int y)
 int main(int argc, char* argv[])
 {    
 
-	fb = new FrameBuffer(INITIAL_RES, INITIAL_RES);
+	fb = new FrameBuffer(256, 256);
 
 	BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
