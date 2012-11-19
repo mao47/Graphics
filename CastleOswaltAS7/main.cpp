@@ -354,9 +354,6 @@ float shootRay(ray *myRay)
 		L.j /= magnL;
 		L.k /= magnL;
 
-
-
-
 		//N dot L for diffuse component
 		float ndotl = L.i*objIntersection.normal.x + L.j*objIntersection.normal.y
 			+ L.k*objIntersection.normal.z;
@@ -366,8 +363,23 @@ float shootRay(ray *myRay)
 		R.j = L.j - 2*ndotl*N.j;
 		R.k = L.k - 2*ndotl*N.k;
 
+		Vector V;
+		V.i = myRay->direction.x;
+		V.j = myRay->direction.y;
+		V.k = myRay->direction.z;
+		float magV = sqrt(V.i*V.i + V.j*V.j + V.k*V.k);
+		V.i /= magV;	V.j /= magV;	V.k /= magV;
+
+		float rdotv = V.i*R.i + V.j*R.j + V.k*R.k;
+		float rdotvexp = pow(rdotv, objIntersection.object.specExp);
+
+
 		r += lightList[i].r * (objIntersection.object.kDiff * objIntersection.object.rDiff
-			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec;
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec * rdotvexp;
+		g += lightList[i].g * (objIntersection.object.kDiff * objIntersection.object.gDiff
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.gSpec * rdotvexp;
+		b += lightList[i].b * (objIntersection.object.kDiff * objIntersection.object.bDiff
+			* ndotl + objIntersection.object.kSpec * objIntersection.object.bSpec * rdotvexp;
 
 	}
 	myRay->r = objIntersection.object.
