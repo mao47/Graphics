@@ -154,13 +154,13 @@ intersection MeshObject::intersects(ray myRay)
 
 	for(i = 0; i < FaceCount; i ++)
 	{
-		Vertex ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v1 ]);
+		Vertex ver = pVertexList[ pFaceList[i].v1 ];
 		vert0[0] = ver.x;	vert0[1] = ver.y;	vert0[2] = ver.z;
 
-		ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v2 ]);
+		ver = pVertexList[ pFaceList[i].v2 ];
 		vert1[0] = ver.x;	vert1[1] = ver.y;	vert1[2] = ver.z;
 
-		ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v3 ]);
+		ver = pVertexList[ pFaceList[i].v3 ];
 		vert2[0] = ver.x;	vert2[1] = ver.y;	vert2[2] = ver.z;
 
 		if(intersect_triangle(orig, dir, vert0, vert1, vert2, &t, &u, &v) == 1)
@@ -176,12 +176,17 @@ intersection MeshObject::intersects(ray myRay)
 				tempi.location.y = (1-u-v)*vert0[1] + u*vert1[1] + v*vert2[1];
 				tempi.location.z = (1-u-v)*vert0[2] + u*vert1[2] + v*vert2[2];
 
-				Vector U, V;
-				U.i = vert1[0]-vert0[0]; U.j = vert1[1]-vert0[1]; U.k = vert1[2]-vert0[2];
-				V.i = vert2[0]-vert0[0]; V.j = vert2[1]-vert0[1]; V.k = vert2[2]-vert0[2];
-				tempi.normal.x = (U.j * V.k) - (U.k * V.j);
-				tempi.normal.y = (U.k * V.i) - (U.i * V.k);
-				tempi.normal.z = (U.i * V.j) - (U.j * V.i);
+				//Vector U, V;
+				//U.i = vert1[0]-vert0[0]; U.j = vert1[1]-vert0[1]; U.k = vert1[2]-vert0[2];
+				//V.i = vert2[0]-vert0[0]; V.j = vert2[1]-vert0[1]; V.k = vert2[2]-vert0[2];
+				//tempi.normal.x = (U.j * V.k) - (U.k * V.j);
+				//tempi.normal.y = (U.k * V.i) - (U.i * V.k);
+				//tempi.normal.z = (U.i * V.j) - (U.j * V.i);
+
+
+				tempi.normal.x = (1-u-v)*pNormList[pFaceList[i].v1].x + u*pNormList[pFaceList[i].v2].x + v*pNormList[pFaceList[i].v3].x;
+				tempi.normal.y = (1-u-v)*pNormList[pFaceList[i].v1].y + u*pNormList[pFaceList[i].v2].y + v*pNormList[pFaceList[i].v3].y;
+				tempi.normal.z = (1-u-v)*pNormList[pFaceList[i].v1].z + u*pNormList[pFaceList[i].v2].z + v*pNormList[pFaceList[i].v3].z;
 				float normalMag = sqrt(tempi.normal.x * tempi.normal.x + 
 					tempi.normal.y * tempi.normal.y + tempi.normal.z * tempi.normal.z);
 				tempi.normal.x /= normalMag;
@@ -321,9 +326,9 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 	}
 	for (i = 0;i < VertexCount;i++)
     {
-      pNormList[i].x = pNormList[i].x / (float)normCount[i];
-      pNormList[i].y = pNormList[i].y / (float)normCount[i];
-      pNormList[i].z = pNormList[i].z / (float)normCount[i];
+      pNormList[i].x = -1.0*pNormList[i].x / (float)normCount[i];
+      pNormList[i].y = -1.0*pNormList[i].y / (float)normCount[i];
+      pNormList[i].z = -1.0*pNormList[i].z / (float)normCount[i];
     }
 	// Initialize the bounding box vertices
 	pBoundingBox[0].x = MinimumX; pBoundingBox[0].y = MinimumY; pBoundingBox[0].z = MinimumZ;
