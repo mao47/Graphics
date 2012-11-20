@@ -251,6 +251,8 @@ void drawRect(double x, double y, double w, double h)
 
 void calcRefractedRay(intersection i, ray *r)
 {
+	if (i.object.kRefr <= 0)
+		return;
 	ray *refracted = new ray();
 	refracted->depth = r->depth;
 	// normalize normal vector
@@ -266,20 +268,20 @@ void calcRefractedRay(intersection i, ray *r)
 	r->direction.z *= invlength;
 
 	double ratioIndRefr;
+
 	if (r->inside)
 	{
-		ratioIndRefr = 1.0 / r->indRefr;
-		r->indRefr = 1.0;
+		ratioIndRefr = i.object.indRefr;
 	}
 	else
 	{
-		ratioIndRefr = i.object.indRefr / r->indRefr;
-		r->indRefr = i.object.indRefr;
+		ratioIndRefr = i.object.indRefr;
 	}
 
-	r->inside = !r->inside;
 	double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
 	double k = 1.0 - ratioIndRefr * ratioIndRefr * (1.0 - rdotn * rdotn);
+
+
 
 	if (k >= 0.0)
 	{
@@ -287,16 +289,27 @@ void calcRefractedRay(intersection i, ray *r)
 		refracted->direction.y = ratioIndRefr * r->direction.y - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.y;
 		refracted->direction.z = ratioIndRefr * r->direction.z - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.z;
 		refracted->origin = i.location;
+
+		refracted->inside = !r->inside;
+
 		r->refracted = refracted;
+		r->kRefl = i.object.kRefl;
+		r->kRefr = i.object.kRefr;
+		refracted->depth = r->depth;
+
+
 		shootRay(refracted);
 	}
-
+	else
+	{
+		delete refracted;
+	}
 
 }
 
 void calcReflectedRay(intersection i, ray *r)
 {
-	if (true) // object is reflecting
+	if (i.object.kRefl > 0) // object is reflecting
 	{
 		//calculate reflection vector
 		ray * reflected = new ray();
@@ -308,6 +321,7 @@ void calcReflectedRay(intersection i, ray *r)
 		i.normal.z *= invlength;
 
 		double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
+
 		reflected->direction.x	= r->direction.x - 2.0 * rdotn * i.normal.x;
 		reflected->direction.y	= r->direction.y - 2.0 * rdotn * i.normal.y;
 		reflected->direction.z	= r->direction.z - 2.0 * rdotn * i.normal.z;
@@ -319,10 +333,13 @@ void calcReflectedRay(intersection i, ray *r)
 		r->direction.z *= invlength;
 
 
+
 		reflected->origin = i.location;
+
 		r->reflected = reflected;
-		//r->kRefl = i.object.kRefl;
-		//r->kRefr = i.object.kRefr;
+		r->kRefl = i.object.kRefl;
+		r->kRefr = i.object.kRefr;
+		reflected->depth = r->depth;
 
 		shootRay(reflected);
 	}
@@ -330,9 +347,14 @@ void calcReflectedRay(intersection i, ray *r)
 
 void shootRay(ray *myRay)
 {
+	myRay->kRefl = 0;
+	myRay->kRefr = 0;
+
 	// normalize ray 
 	double invlength = 1.0 / sqrt(myRay->direction.x * myRay->direction.x + 
-		myRay->direction.y * myRay->direction.y + myRay->direction.z * myRay->direction.z);
+		myRay->direction.y * myRay->direction.y + 
+		myRay->direction.z * myRay->direction.z);
+
 	myRay->direction.x *= invlength;
 	myRay->direction.y *= invlength;
 	myRay->direction.z *= invlength;
@@ -365,6 +387,7 @@ void shootRay(ray *myRay)
 		{
 			if(inter.distance < distance && inter.distance > 0)
 			{
+				distance = inter.distance;
 				objIntersection = inter;
 			}
 		}
@@ -377,11 +400,12 @@ void shootRay(ray *myRay)
 
 	//select closest point and object
 	if(objIntersection.type == type_none)
+	{
+		myRay = NULL;
 		return;
-	
-	
-	
-
+	}
+	myRay->kRefl = objIntersection.object.kRefl;
+	myRay->kRefr = objIntersection.object.kRefr;
 
 	//rgb = localIllumination()
 	float r, g, b;
@@ -431,6 +455,8 @@ void shootRay(ray *myRay)
 		float rdotv = (V.i*R.i + V.j*R.j + V.k*R.k);
 		float rdotvexp = pow(rdotv, (float)objIntersection.object.specExp);
 
+		float bl = lightList[i].b;
+
 		r += lightList[i].r * (objIntersection.object.kDiff * objIntersection.object.rDiff
 			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec * rdotvexp);
 		g += lightList[i].g * (objIntersection.object.kDiff * objIntersection.object.gDiff
@@ -438,12 +464,14 @@ void shootRay(ray *myRay)
 		b += lightList[i].b * (objIntersection.object.kDiff * objIntersection.object.bDiff
 			* ndotl + objIntersection.object.kSpec * objIntersection.object.bSpec * rdotvexp);
 
-
 	}
-			if(myRay->inside)
-	{
-		r = g= b = 0.0;
-		}
+
+	//		if(myRay->inside)
+	//{
+	//	r = g= b = 0.0;
+	//	}
+
+
 	myRay->r = r;
 	myRay->g = g;
 	myRay->b = b;
@@ -455,10 +483,9 @@ void shootRay(ray *myRay)
 	{
 		calcReflectedRay(objIntersection, myRay);
 		calcRefractedRay(objIntersection, myRay);
-	}else
-	{
-		printf("max depth reached\n");
 	}
+	else
+		myRay = NULL;
 }
 
 

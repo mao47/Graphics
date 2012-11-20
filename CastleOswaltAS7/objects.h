@@ -94,6 +94,12 @@ typedef struct ray {
 	ray() {
 		reflected = NULL;
 		refracted = NULL;
+		r = 0;
+		b = 0;
+		g = 0;
+		krg = 1.0;
+		indRefr = 1.0;
+		inside = false;
 	}
 	point origin;
 	point direction;
