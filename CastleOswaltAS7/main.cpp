@@ -292,6 +292,7 @@ void calcRefractedRay(intersection i, ray *r)
 		refracted->inside = !r->inside;
 
 		r->refracted = refracted;
+		refracted->krg = r->krg*0.5;
 		r->kRefl = i.object.kRefl;
 		r->kRefr = i.object.kRefr;
 		refracted->depth = r->depth;
@@ -326,7 +327,7 @@ void calcReflectedRay(intersection i, ray *r)
 		normalize(r->direction);
 
 		reflected->origin = i.location;
-
+		reflected->krg = r->krg*0.5;
 		r->reflected = reflected;
 		r->kRefl = i.object.kRefl;
 		r->kRefr = i.object.kRefr;
@@ -359,7 +360,7 @@ void shootRay(ray *myRay)
 	localIllumination(myRay->r, myRay->g, myRay->b, objIntersection, myRay);
 	
 	// attenuate
-	myRay->krg = 1.0;// / (objIntersection.distance * objIntersection.distance);
+	//myRay->krg = 1.0;// / (objIntersection.distance * objIntersection.distance);
 	//myRay->r = objIntersection.object.
 
 	myRay->depth --;
@@ -405,7 +406,7 @@ void localIllumination(float &r, float &g, float &b, intersection objIntersectio
 		//N dot L for diffuse component
 		float ndotl = (L.i*objIntersection.normal.x + L.j*objIntersection.normal.y
 			+ L.k*objIntersection.normal.z);
-
+		if(ndotl < 0) ndotl = 0.0;
 		Vector R; // perfect reflection vector;
 		R.i = L.i - 2*ndotl*objIntersection.normal.x;
 		R.j = L.j - 2*ndotl*objIntersection.normal.y;
