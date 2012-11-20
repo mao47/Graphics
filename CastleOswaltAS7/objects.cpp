@@ -135,13 +135,13 @@ intersection MeshObject::intersects(ray myRay)
 	int interBox = 0;
 	for(i = 0; i < 12; i ++)
 	{
-		Vertex ver = Transform(ModelMatrix, pBoundingBox[ triangles[i][0] ]);
+		Vertex ver = pBoundingBox[ triangles[i][0] ];//Transform(ModelMatrix, pBoundingBox[ triangles[i][0] ]);
 		vert0[0] = ver.x;	vert0[1] = ver.y;	vert0[2] = ver.z;
 				
-		ver = Transform(ModelMatrix, pBoundingBox[ triangles[i][1] ]);
+		ver = pBoundingBox[ triangles[i][1] ];//Transform(ModelMatrix, pBoundingBox[ triangles[i][1] ]);
 		vert1[0] = ver.x;	vert1[1] = ver.y;	vert1[2] = ver.z;
 
-		ver = Transform(ModelMatrix, pBoundingBox[ triangles[i][2] ]);
+		ver = pBoundingBox[ triangles[i][2] ];//Transform(ModelMatrix, pBoundingBox[ triangles[i][2] ]);
 		vert2[0] = ver.x;	vert2[1] = ver.y;	vert2[2] = ver.z;
 
 		if(intersect_triangle(orig, dir, vert0, vert1, vert2, &t, &u, &v) == 1 )
@@ -274,9 +274,15 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 		}
 	}
 
+	// Apply the initial transformations in order
+	LocalScale(s);
+	WorldRotate((float)(M_PI*rx/180.0), (float)(M_PI*ry/180.0), (float)(M_PI*rz/180.0));
+	WorldTranslate(tx, ty, tz);	
+	
 	normCount = (int *)malloc(sizeof(int)*VertexCount);
 	for(i = 0; i < VertexCount; i++)
 	{
+		pVertexList[i] = Transform(ModelMatrix, pVertexList[i]);
 		pNormList[i].x = pNormList[i].y = pNormList[i].z = 0.0;
 		normCount[i] = 0;
 	}
@@ -329,10 +335,12 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 	pBoundingBox[6].x = MinimumX; pBoundingBox[6].y = MaximumY; pBoundingBox[6].z = MaximumZ;
 	pBoundingBox[7].x = MaximumX; pBoundingBox[7].y = MaximumY; pBoundingBox[7].z = MaximumZ;
 
-	// Apply the initial transformations in order
-	LocalScale(s);
-	WorldRotate((float)(M_PI*rx/180.0), (float)(M_PI*ry/180.0), (float)(M_PI*rz/180.0));
-	WorldTranslate(tx, ty, tz);	
+
+	for(i = 0; i < 16; i ++)
+	{
+		ModelMatrix[i] = 0.0;
+	}
+	ModelMatrix[0] = ModelMatrix[5] = ModelMatrix[10] = ModelMatrix[15]= 1.0;
 }
 
 // Do world-based translation
