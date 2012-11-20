@@ -258,7 +258,7 @@ void normalize(point &p)
 
 void calcRefractedRay(intersection i, ray *r)
 {
-	if (i.object.kRefr <= 0)
+	if (i.object.kRefr <= 0.0)
 		return;
 
 	ray *refracted = new ray();
@@ -270,7 +270,7 @@ void calcRefractedRay(intersection i, ray *r)
 
 	if (r->inside)
 	{
-		ratioIndRefr = i.object.indRefr;
+		ratioIndRefr = 1.0 / i.object.indRefr;
 	}
 	else
 	{
@@ -292,8 +292,6 @@ void calcRefractedRay(intersection i, ray *r)
 		refracted->inside = !r->inside;
 
 		r->refracted = refracted;
-		r->kRefl = i.object.kRefl;
-		r->kRefr = i.object.kRefr;
 		refracted->depth = r->depth;
 
 
@@ -308,7 +306,7 @@ void calcRefractedRay(intersection i, ray *r)
 
 void calcReflectedRay(intersection i, ray *r)
 {
-	if (i.object.kRefl > 0) // object is reflecting
+	if (i.object.kRefl > 0.0) // object is reflecting
 	{
 		//calculate reflection vector
 		ray * reflected = new ray();
@@ -325,8 +323,6 @@ void calcReflectedRay(intersection i, ray *r)
 		reflected->origin = i.location;
 
 		r->reflected = reflected;
-		r->kRefl = i.object.kRefl;
-		r->kRefr = i.object.kRefr;
 		reflected->depth = r->depth;
 
 		shootRay(reflected);
@@ -337,10 +333,6 @@ void shootRay(ray *myRay)
 {
 	// normalize ray 
 	normalize(myRay->direction);
-	
-	myRay->r = 0;
-	myRay->g = 0;
-	myRay->b = 0;
 
 	intersection objIntersection = getIntersections(myRay);
 
@@ -616,7 +608,7 @@ int main(int argc, char* argv[])
 {    
 	imgPlnSize = 5.0;
 	imgPlnDist = 8.0;
-	fb = new FrameBuffer(256, 256);
+	fb = new FrameBuffer(128, 128);
 
 	//BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
