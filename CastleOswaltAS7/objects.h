@@ -128,6 +128,8 @@ typedef struct ray {
 			reflR = reflected->r;
 			reflG = reflected->g;
 			reflB = reflected->b;
+			if (reflR > 0 || reflG > 0 || reflB > 0)
+				r = r;
 		}
 		if (refracted)
 		{
@@ -136,9 +138,9 @@ typedef struct ray {
 			refrG = refracted->g;
 			refrB = refracted->b;
 		}
-		r = r * krg + reflR * kRefl + refrR * kRefr;
-		g = g * krg + reflG * kRefl + refrG * kRefr;
-		b = b * krg + reflB * kRefl + refrB * kRefr;
+		r = r * krg + reflR * kRefl * 5.0 + refrR * kRefr;
+		g = g * krg + reflG * kRefl * 5.0 + refrG * kRefr;
+		b = b * krg + reflB * kRefl * 5.0 + refrB * kRefr;
 	}
 
 } ray;
@@ -163,20 +165,4 @@ public:
 	Face* pFaceList;
 	int FaceCount;
 	float ModelMatrix[16];
-	//double rSpec;
-	//double gSpec;
-	//double bSpec;
-	//double rDiff;
-	//double gDiff;
-	//double bDiff;
-	//double rAmb;
-	//double bAmb;
-	//double gAmb;
-	//double kSpec;
-	//double kAmb;
-	//double kDiff;
-	//double specExp;
-	//double indRefr;
-	//double kRefl;
-	//double kRefr;
 };
