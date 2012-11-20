@@ -252,7 +252,7 @@ void drawRect(double x, double y, double w, double h)
 void calcRefractedRay(intersection i, ray *r)
 {
 	ray *refracted = new ray();
-
+	refracted->depth = r->depth;
 	// normalize normal vector
 	double invlength = 1.0 / sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
 	i.normal.x *= invlength;
@@ -287,7 +287,7 @@ void calcRefractedRay(intersection i, ray *r)
 		refracted->direction.y = ratioIndRefr * r->direction.y - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.y;
 		refracted->direction.z = ratioIndRefr * r->direction.z - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.z;
 		refracted->origin = i.location;
-
+		r->refracted = refracted;
 		shootRay(refracted);
 	}
 
@@ -300,7 +300,7 @@ void calcReflectedRay(intersection i, ray *r)
 	{
 		//calculate reflection vector
 		ray * reflected = new ray();
-
+		reflected->depth = r->depth ;
 		// normalize normal vector
 		double invlength = 1.0 / sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
 		i.normal.x *= invlength;
@@ -312,10 +312,17 @@ void calcReflectedRay(intersection i, ray *r)
 		reflected->direction.y	= r->direction.y - 2.0 * rdotn * i.normal.y;
 		reflected->direction.z	= r->direction.z - 2.0 * rdotn * i.normal.z;
 
+		//normalize reflection direction
+		invlength = 1.0 / sqrt(r->direction.x *r->direction.x + r->direction.y*r->direction.y + r->direction.z*r->direction.z) ;
+		r->direction.x *= invlength;
+		r->direction.y *= invlength;
+		r->direction.z *= invlength;
+
+
 		reflected->origin = i.location;
 		r->reflected = reflected;
-		r->kRefl = i.object.kRefl;
-		r->kRefr = i.object.kRefr;
+		//r->kRefl = i.object.kRefl;
+		//r->kRefr = i.object.kRefr;
 
 		shootRay(reflected);
 	}
@@ -371,6 +378,10 @@ void shootRay(ray *myRay)
 	//select closest point and object
 	if(objIntersection.type == type_none)
 		return;
+	
+	
+	
+
 
 	//rgb = localIllumination()
 	float r, g, b;
@@ -429,6 +440,10 @@ void shootRay(ray *myRay)
 
 
 	}
+			if(myRay->inside)
+	{
+		r = g= b = 0.0;
+		}
 	myRay->r = r;
 	myRay->g = g;
 	myRay->b = b;
@@ -440,6 +455,9 @@ void shootRay(ray *myRay)
 	{
 		calcReflectedRay(objIntersection, myRay);
 		calcRefractedRay(objIntersection, myRay);
+	}else
+	{
+		printf("max depth reached\n");
 	}
 }
 
@@ -465,30 +483,6 @@ void	display(void)
 	printf("width %d, height %d\n", fb->GetWidth(), fb->GetHeight());
 
 	point worldPoint;
-
-	//ray *r;
-	//float width = fb->GetWidth() / 2.0;
-	//float height = fb->GetHeight() / 2.0;
-	//for(int y = 0; y < fb->GetHeight(); y++)
-	//{
-	//	for(int x = 0; x < fb->GetHeight(); x++)
-	//	{
-	//		r = new ray();
-	//		r->depth = 4;
-	//		r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
-	//		r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
-	//		r->direction.z = -imgPlnDist;
-	//		shootRay(r);
-	//		r->calculateValues();
-	//		cl.r = r->r;
-	//		cl.g = r->g;
-	//		cl.b = r->b;
-	//		//cl = fb->buffer[x][y].color;
-	//		glColor3f(cl.r, cl.g, cl.b);
-
-	//		drawRect(w*x, h*y, w, h);
-	//	}
-	//}
 
 	for(int y = 0; y < fb->GetHeight(); y++)
 	{
@@ -547,7 +541,8 @@ void renderScene()
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
-			r->depth = 4;
+			r->depth = 5;
+			r->inside = false;
 			r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
 			r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
 			r->direction.z = -imgPlnDist;

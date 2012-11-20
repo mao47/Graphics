@@ -128,9 +128,9 @@ typedef struct ray {
 			refrG = refracted->g;
 			refrB = refracted->b;
 		}
-		r = r * krg + reflR * kRefl + refrR * kRefr;
-		g = g * krg + reflG * kRefl + refrG * kRefr;
-		b = b * krg + reflB * kRefl + refrB * kRefr;
+		r = r * krg + reflR /* kRefl*/ + refrR /* kRefr*/;
+		g = g * krg + reflG /* kRefl*/ + refrG /* kRefr*/;
+		b = b * krg + reflB /* kRefl*/ + refrB /* kRefr*/;
 	}
 
 } ray;
