@@ -254,6 +254,9 @@ void drawRect(double x, double y, double w, double h)
 void normalize(point &p)
 {
 	double invlength = 1.0 / sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+	p.x *= invlength;
+	p.y *= invlength;
+	p.z *= invlength;
 }
 
 void calcRefractedRay(intersection i, ray *r)
@@ -558,7 +561,7 @@ void renderScene()
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
-			r->depth = 5;
+			r->depth = 7;
 			r->inside = false;
 			r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
 			r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
