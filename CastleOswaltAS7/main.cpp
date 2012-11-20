@@ -466,26 +466,36 @@ void	display(void)
 
 	point worldPoint;
 
-	ray *r;
-	float width = fb->GetWidth() / 2.0;
-	float height = fb->GetHeight() / 2.0;
+	//ray *r;
+	//float width = fb->GetWidth() / 2.0;
+	//float height = fb->GetHeight() / 2.0;
+	//for(int y = 0; y < fb->GetHeight(); y++)
+	//{
+	//	for(int x = 0; x < fb->GetHeight(); x++)
+	//	{
+	//		r = new ray();
+	//		r->depth = 4;
+	//		r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
+	//		r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
+	//		r->direction.z = -imgPlnDist;
+	//		shootRay(r);
+	//		r->calculateValues();
+	//		cl.r = r->r;
+	//		cl.g = r->g;
+	//		cl.b = r->b;
+	//		//cl = fb->buffer[x][y].color;
+	//		glColor3f(cl.r, cl.g, cl.b);
+
+	//		drawRect(w*x, h*y, w, h);
+	//	}
+	//}
+
 	for(int y = 0; y < fb->GetHeight(); y++)
 	{
-		for(int x = 0; x < fb->GetHeight(); x++)
+		for(int x = 0; x < fb->GetWidth(); x++)
 		{
-			r = new ray();
-			r->depth = 4;
-			r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
-			r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
-			r->direction.z = -imgPlnDist;
-			shootRay(r);
-			r->calculateValues();
-			cl.r = r->r;
-			cl.g = r->g;
-			cl.b = r->b;
-			//cl = fb->buffer[x][y].color;
+			cl = fb->GetPixel(x, y).color;
 			glColor3f(cl.r, cl.g, cl.b);
-
 			drawRect(w*x, h*y, w, h);
 		}
 	}
@@ -525,6 +535,38 @@ void	mouseMotion(int x, int y)
 }
 
 
+void renderScene()
+{
+	printf("rendering...");
+	Color cl;
+		ray *r;
+	float width = fb->GetWidth() / 2.0;
+	float height = fb->GetHeight() / 2.0;
+	for(int y = 0; y < fb->GetHeight(); y++)
+	{
+		for(int x = 0; x < fb->GetHeight(); x++)
+		{
+			r = new ray();
+			r->depth = 4;
+			r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
+			r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
+			r->direction.z = -imgPlnDist;
+			shootRay(r);
+			r->calculateValues();
+			cl.r = r->r;
+			cl.g = r->g;
+			cl.b = r->b;
+			fb->SetPixel(x, y, cl);
+			//cl = fb->buffer[x][y].color;
+			//glColor3f(cl.r, cl.g, cl.b);
+
+			//drawRect(w*x, h*y, w, h);
+		}
+	}
+	printf("\n  render complete\n");
+}
+
+
 // This function is called whenever there is a keyboard input
 // key is the ASCII value of the key pressed
 // x and y are the location of the mouse
@@ -536,11 +578,11 @@ void	keyboard(unsigned char key, int x, int y)
 		break;
 	case '-':
 		fb->Resize(fb->GetHeight()/2, fb->GetWidth()/2);
-		BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
+		//BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 		break;
 	case '=':
 		fb->Resize(fb->GetHeight()*2, fb->GetWidth()*2);
-		BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
+		//BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 		break;
 	case '[':
 		imgPlnDist = imgPlnDist / 1.25;
@@ -558,6 +600,9 @@ void	keyboard(unsigned char key, int x, int y)
 		imgPlnSize = imgPlnSize * 1.25;
 		printf("Image plane size: %f \n", imgPlnSize); 
 		break;
+	case 'r':
+		renderScene();
+		break;
     default:
 		break;
     }
@@ -566,15 +611,13 @@ void	keyboard(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-
-
 int main(int argc, char* argv[])
 {    
 	imgPlnSize = 5.0;
 	imgPlnDist = 8.0;
-	fb = new FrameBuffer(256, 256);
+	fb = new FrameBuffer(128, 128);
 
-	BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
+	//BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
 	layoutReader("../samples/red_sphere_and_teapot.rtl");
 	
@@ -599,6 +642,8 @@ int main(int argc, char* argv[])
 	glEnable(GL_POLYGON_SMOOTH);
 	glEnable(GL_POINT_SMOOTH);
 	glEnable(GL_LINE_SMOOTH);
+
+	renderScene();
 
     // Switch to main loop
     glutMainLoop();
