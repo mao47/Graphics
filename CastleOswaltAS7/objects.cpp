@@ -326,9 +326,10 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 	}
 	for (i = 0;i < VertexCount;i++)
     {
-      pNormList[i].x = -1.0*pNormList[i].x / (float)normCount[i];
-      pNormList[i].y = -1.0*pNormList[i].y / (float)normCount[i];
-      pNormList[i].z = -1.0*pNormList[i].z / (float)normCount[i];
+		float magn = sqrt(pNormList[i].x*pNormList[i].x + pNormList[i].y*pNormList[i].y + pNormList[i].z*pNormList[i].z);
+      pNormList[i].x = -1.0*pNormList[i].x / magn;// (float)normCount[i];
+      pNormList[i].y = -1.0*pNormList[i].y / magn;// (float)normCount[i];
+      pNormList[i].z = -1.0*pNormList[i].z / magn;// (float)normCount[i];
     }
 	// Initialize the bounding box vertices
 	pBoundingBox[0].x = MinimumX; pBoundingBox[0].y = MinimumY; pBoundingBox[0].z = MinimumZ;
