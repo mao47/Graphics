@@ -474,9 +474,9 @@ void	display(void)
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
-			r->depth = 7;
-			r->direction.x = 5.0 * (x + 0.5 - width) / width;
-			r->direction.y = 5.0 * (y + 0.5 - height) / height;
+			r->depth = 4;
+			r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
+			r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
 			r->direction.z = -imgPlnDist;
 			shootRay(r);
 			r->calculateValues();
@@ -543,12 +543,20 @@ void	keyboard(unsigned char key, int x, int y)
 		BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 		break;
 	case '[':
-		imgPlnDist = imgPlnDist / 1.5;
+		imgPlnDist = imgPlnDist / 1.25;
 		printf("Image plane distance: %f \n", imgPlnDist); 
 		break;
 	case ']':
-		imgPlnDist = imgPlnDist * 1.5;
+		imgPlnDist = imgPlnDist * 1.25;
 		printf("Image plane distance: %f \n", imgPlnDist); 
+		break;
+	case ',':
+		imgPlnSize = imgPlnSize / 1.25;
+		printf("Image plane size: %f \n", imgPlnSize); 
+		break;
+	case '.':
+		imgPlnSize = imgPlnSize * 1.25;
+		printf("Image plane size: %f \n", imgPlnSize); 
 		break;
     default:
 		break;
