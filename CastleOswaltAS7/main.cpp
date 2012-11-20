@@ -35,6 +35,7 @@ MeshObject* meshList;
 int meshCount;
 
 intersection getIntersections(ray *myRay);
+void localIllumination(float &r, float &g, float &b, intersection objIntersection, ray *myRay);
 
 typedef struct sphere : GraphicsObject {
 	point center;
@@ -287,12 +288,14 @@ void calcRefractedRay(intersection i, ray *r)
 		refracted->direction.y = ratioIndRefr * r->direction.y - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.y;
 		refracted->direction.z = ratioIndRefr * r->direction.z - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.z;
 		refracted->origin = i.location;
+
 		refracted->inside = !r->inside;
 
 		r->refracted = refracted;
 		r->kRefl = i.object.kRefl;
 		r->kRefr = i.object.kRefr;
 		refracted->depth = r->depth;
+
 
 		shootRay(refracted);
 	}
@@ -309,7 +312,7 @@ void calcReflectedRay(intersection i, ray *r)
 	{
 		//calculate reflection vector
 		ray * reflected = new ray();
-
+		reflected->depth = r->depth ;
 		// normalize normal vector
 		normalize(i.normal);
 
@@ -318,6 +321,10 @@ void calcReflectedRay(intersection i, ray *r)
 		reflected->direction.x	= r->direction.x - 2.0 * rdotn * i.normal.x;
 		reflected->direction.y	= r->direction.y - 2.0 * rdotn * i.normal.y;
 		reflected->direction.z	= r->direction.z - 2.0 * rdotn * i.normal.z;
+
+		//normalize reflection direction
+		normalize(r->direction);
+
 		reflected->origin = i.location;
 
 		r->reflected = reflected;
@@ -346,9 +353,27 @@ void shootRay(ray *myRay)
 		myRay = NULL;
 		return;
 	}
+	myRay->kRefl = objIntersection.object.kRefl;
+	myRay->kRefr = objIntersection.object.kRefr;
 
-	//rgb = localIllumination()
-	float r, g, b;
+	localIllumination(myRay->r, myRay->g, myRay->b, objIntersection, myRay);
+	
+	// attenuate
+	myRay->krg = 1.0;// / (objIntersection.distance * objIntersection.distance);
+	//myRay->r = objIntersection.object.
+
+	myRay->depth --;
+	if(myRay->depth > 0)
+	{
+		calcReflectedRay(objIntersection, myRay);
+		calcRefractedRay(objIntersection, myRay);
+	}
+	else
+		myRay = NULL;
+}
+
+void localIllumination(float &r, float &g, float &b, intersection objIntersection, ray *myRay)
+{
 	//ambient part independent of light sources
 	r = 0.3 * objIntersection.object.rAmb * objIntersection.object.kAmb;
 	g = 0.3 * objIntersection.object.gAmb * objIntersection.object.kAmb;
@@ -404,21 +429,6 @@ void shootRay(ray *myRay)
 			* ndotl + objIntersection.object.kSpec * objIntersection.object.bSpec * rdotvexp);
 
 	}
-
-	myRay->r = r;
-	myRay->g = g;
-	myRay->b = b;
-	myRay->krg = 1.0;// / (objIntersection.distance * objIntersection.distance);
-	//myRay->r = objIntersection.object.
-
-	myRay->depth --;
-	if(myRay->depth > 0)
-	{
-		calcReflectedRay(objIntersection, myRay);
-		calcRefractedRay(objIntersection, myRay);
-	}
-	else
-		myRay = NULL;
 }
 
 intersection getIntersections(ray *myRay)
@@ -483,30 +493,6 @@ void	display(void)
 
 	point worldPoint;
 
-	//ray *r;
-	//float width = fb->GetWidth() / 2.0;
-	//float height = fb->GetHeight() / 2.0;
-	//for(int y = 0; y < fb->GetHeight(); y++)
-	//{
-	//	for(int x = 0; x < fb->GetHeight(); x++)
-	//	{
-	//		r = new ray();
-	//		r->depth = 4;
-	//		r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
-	//		r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
-	//		r->direction.z = -imgPlnDist;
-	//		shootRay(r);
-	//		r->calculateValues();
-	//		cl.r = r->r;
-	//		cl.g = r->g;
-	//		cl.b = r->b;
-	//		//cl = fb->buffer[x][y].color;
-	//		glColor3f(cl.r, cl.g, cl.b);
-
-	//		drawRect(w*x, h*y, w, h);
-	//	}
-	//}
-
 	for(int y = 0; y < fb->GetHeight(); y++)
 	{
 		for(int x = 0; x < fb->GetWidth(); x++)
@@ -564,7 +550,8 @@ void renderScene()
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
-			r->depth = 4;
+			r->depth = 5;
+			r->inside = false;
 			r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
 			r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
 			r->direction.z = -imgPlnDist;
