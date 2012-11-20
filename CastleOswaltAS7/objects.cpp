@@ -7,6 +7,11 @@
 
 using namespace std;
 
+//array defining triangles for bounding box intersection
+int triangles[12][3];
+int boxInit = 0;
+
+
 Vertex::Vertex()
 {
 	x = y = z = 0;
@@ -30,6 +35,71 @@ Vertex Transform(float* matrix, Vertex& point)
 	return temp;
 }
 
+void initBoundBoxTriangles()
+{
+	if(boxInit != 0 )
+	{
+		return;
+	}
+	//bottom
+	triangles[0][0] = 0;
+	triangles[0][1] = 1;
+	triangles[0][2] = 2;
+
+	triangles[1][0] = 2;
+	triangles[1][1] = 3;
+	triangles[1][2] = 4;
+
+	//top
+	triangles[2][0] = 4;
+	triangles[2][1] = 5;
+	triangles[2][2] = 6;
+
+	triangles[3][0] = 5;
+	triangles[3][1] = 6;
+	triangles[3][2] = 7;
+
+	//front
+	triangles[4][0] = 0;
+	triangles[4][1] = 2;
+	triangles[4][2] = 4;
+
+	triangles[5][0] = 2;
+	triangles[5][1] = 4;
+	triangles[5][2] = 6;
+
+	//back
+	triangles[6][0] = 1;
+	triangles[6][1] = 3;
+	triangles[6][2] = 5;
+
+	triangles[7][0] = 3;
+	triangles[7][1] = 5;
+	triangles[7][2] = 7;
+
+	//left
+	triangles[8][0] = 0;
+	triangles[8][1] = 1;
+	triangles[8][2] = 5;
+
+	triangles[9][0] = 0;
+	triangles[9][1] = 4;
+	triangles[9][2] = 5;
+
+	//right
+	triangles[10][0] = 2;
+	triangles[10][1] = 3;
+	triangles[10][2] = 6;
+
+	triangles[11][0] = 3;
+	triangles[11][1] = 6;
+	triangles[11][2] = 7;
+	
+	
+	boxInit = 1;
+
+}
+
 MeshObject::MeshObject()
 {
 	pBoundingBox = new Vertex[8];
@@ -50,6 +120,8 @@ MeshObject::~MeshObject()
 
 intersection MeshObject::intersects(ray myRay)
 {
+	initBoundBoxTriangles();
+
 	int i = 0;
 	intersection besti;
 	besti.type = type_none;
@@ -59,15 +131,36 @@ intersection MeshObject::intersects(ray myRay)
 	orig[0] = myRay.origin.x; orig[1] = myRay.origin.y; orig[2] = myRay.origin.z;
 	dir[0] = myRay.direction.x; dir[1] = myRay.direction.y; dir[2] = myRay.direction.z;
 
-	for(i = 0; i < FaceCount; i ++)
+	//first check intersection with 12 bounding box triangles to avoid checking every polygon of object
+	int interBox = 0;
+	for(i = 0; i < 12; i ++)
 	{
-		Vertex ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v1 ]);
+		Vertex ver = pBoundingBox[ triangles[i][0] ];//Transform(ModelMatrix, pBoundingBox[ triangles[i][0] ]);
 		vert0[0] = ver.x;	vert0[1] = ver.y;	vert0[2] = ver.z;
-
-		ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v2 ]);
+				
+		ver = pBoundingBox[ triangles[i][1] ];//Transform(ModelMatrix, pBoundingBox[ triangles[i][1] ]);
 		vert1[0] = ver.x;	vert1[1] = ver.y;	vert1[2] = ver.z;
 
-		ver = Transform(ModelMatrix, pVertexList[ pFaceList[i].v3 ]);
+		ver = pBoundingBox[ triangles[i][2] ];//Transform(ModelMatrix, pBoundingBox[ triangles[i][2] ]);
+		vert2[0] = ver.x;	vert2[1] = ver.y;	vert2[2] = ver.z;
+
+		if(intersect_triangle(orig, dir, vert0, vert1, vert2, &t, &u, &v) == 1 )
+		{
+			interBox = 1;
+			break;
+		}
+	}
+	if(interBox == 0) return besti;
+
+	for(i = 0; i < FaceCount; i ++)
+	{
+		Vertex ver = pVertexList[ pFaceList[i].v1 ];
+		vert0[0] = ver.x;	vert0[1] = ver.y;	vert0[2] = ver.z;
+
+		ver = pVertexList[ pFaceList[i].v2 ];
+		vert1[0] = ver.x;	vert1[1] = ver.y;	vert1[2] = ver.z;
+
+		ver = pVertexList[ pFaceList[i].v3 ];
 		vert2[0] = ver.x;	vert2[1] = ver.y;	vert2[2] = ver.z;
 
 		if(intersect_triangle(orig, dir, vert0, vert1, vert2, &t, &u, &v) == 1)
@@ -83,12 +176,17 @@ intersection MeshObject::intersects(ray myRay)
 				tempi.location.y = (1-u-v)*vert0[1] + u*vert1[1] + v*vert2[1];
 				tempi.location.z = (1-u-v)*vert0[2] + u*vert1[2] + v*vert2[2];
 
-				Vector U, V;
-				U.i = vert1[0]-vert0[0]; U.j = vert1[1]-vert0[1]; U.k = vert1[2]-vert0[2];
-				V.i = vert2[0]-vert0[0]; V.j = vert2[1]-vert0[1]; V.k = vert2[2]-vert0[2];
-				tempi.normal.x = (U.j * V.k) - (U.k * V.j);
-				tempi.normal.y = (U.k * V.i) - (U.i * V.k);
-				tempi.normal.z = (U.i * V.j) - (U.j * V.i);
+				//Vector U, V;
+				//U.i = vert1[0]-vert0[0]; U.j = vert1[1]-vert0[1]; U.k = vert1[2]-vert0[2];
+				//V.i = vert2[0]-vert0[0]; V.j = vert2[1]-vert0[1]; V.k = vert2[2]-vert0[2];
+				//tempi.normal.x = (U.j * V.k) - (U.k * V.j);
+				//tempi.normal.y = (U.k * V.i) - (U.i * V.k);
+				//tempi.normal.z = (U.i * V.j) - (U.j * V.i);
+
+
+				tempi.normal.x = (1-u-v)*pNormList[pFaceList[i].v1].x + u*pNormList[pFaceList[i].v2].x + v*pNormList[pFaceList[i].v3].x;
+				tempi.normal.y = (1-u-v)*pNormList[pFaceList[i].v1].y + u*pNormList[pFaceList[i].v2].y + v*pNormList[pFaceList[i].v3].y;
+				tempi.normal.z = (1-u-v)*pNormList[pFaceList[i].v1].z + u*pNormList[pFaceList[i].v2].z + v*pNormList[pFaceList[i].v3].z;
 				float normalMag = sqrt(tempi.normal.x * tempi.normal.x + 
 					tempi.normal.y * tempi.normal.y + tempi.normal.z * tempi.normal.z);
 				tempi.normal.x /= normalMag;
@@ -111,9 +209,11 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 		cout << "Failed to load " << file << "." << endl;
 	else
 		cout << "Successfully loaded " << file << "." << endl;
-
+	int *normCount;
 	char DataType;
-	float a, b, c;
+	float a, b, c, len;
+	int i;
+	Vertex v1, v2, crossP;
 
 	// Scan the file and count the faces and vertices
 	VertexCount = FaceCount = 0;
@@ -127,6 +227,7 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 	}
 	pVertexList = new Vertex[VertexCount];
 	pFaceList = new Face[FaceCount];
+	pNormList = new Vertex[VertexCount];
 
 	fseek(pObjectFile, 0L, SEEK_SET);
 
@@ -178,6 +279,58 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 		}
 	}
 
+	// Apply the initial transformations in order
+	LocalScale(s);
+	WorldRotate((float)(M_PI*rx/180.0), (float)(M_PI*ry/180.0), (float)(M_PI*rz/180.0));
+	WorldTranslate(tx, ty, tz);	
+	
+	normCount = (int *)malloc(sizeof(int)*VertexCount);
+	for(i = 0; i < VertexCount; i++)
+	{
+		pVertexList[i] = Transform(ModelMatrix, pVertexList[i]);
+		pNormList[i].x = pNormList[i].y = pNormList[i].z = 0.0;
+		normCount[i] = 0;
+	}
+	for(i = 0; i < FaceCount; i++)
+	{
+		v1.x = pVertexList[pFaceList[i].v2].x - pVertexList[pFaceList[i].v1].x;
+		v1.y = pVertexList[pFaceList[i].v2].y - pVertexList[pFaceList[i].v1].y;
+		v1.z = pVertexList[pFaceList[i].v2].z - pVertexList[pFaceList[i].v1].z;
+		v2.x = pVertexList[pFaceList[i].v3].x - pVertexList[pFaceList[i].v2].x;
+		v2.y = pVertexList[pFaceList[i].v3].y - pVertexList[pFaceList[i].v2].y;
+		v2.z = pVertexList[pFaceList[i].v3].z - pVertexList[pFaceList[i].v2].z;
+
+		
+      crossP.x = v1.y*v2.z - v1.z*v2.y;
+      crossP.y = v1.z*v2.x - v1.x*v2.z;
+      crossP.z = v1.x*v2.y - v1.y*v2.x;
+
+      len = sqrt(crossP.x*crossP.x + crossP.y*crossP.y + crossP.z*crossP.z);
+
+      crossP.x = -crossP.x/len;
+      crossP.y = -crossP.y/len;
+      crossP.z = -crossP.z/len;
+
+      pNormList[pFaceList[i].v1].x = pNormList[pFaceList[i].v1].x + crossP.x;
+      pNormList[pFaceList[i].v1].y = pNormList[pFaceList[i].v1].y + crossP.y;
+      pNormList[pFaceList[i].v1].z = pNormList[pFaceList[i].v1].z + crossP.z;
+      pNormList[pFaceList[i].v2].x = pNormList[pFaceList[i].v2].x + crossP.x;
+      pNormList[pFaceList[i].v2].y = pNormList[pFaceList[i].v2].y + crossP.y;
+      pNormList[pFaceList[i].v2].z = pNormList[pFaceList[i].v2].z + crossP.z;
+      pNormList[pFaceList[i].v3].x = pNormList[pFaceList[i].v3].x + crossP.x;
+      pNormList[pFaceList[i].v3].y = pNormList[pFaceList[i].v3].y + crossP.y;
+      pNormList[pFaceList[i].v3].z = pNormList[pFaceList[i].v3].z + crossP.z;
+      normCount[pFaceList[i].v1]++;
+      normCount[pFaceList[i].v2]++;
+      normCount[pFaceList[i].v3]++;
+	}
+	for (i = 0;i < VertexCount;i++)
+    {
+		float magn = sqrt(pNormList[i].x*pNormList[i].x + pNormList[i].y*pNormList[i].y + pNormList[i].z*pNormList[i].z);
+      pNormList[i].x = -1.0*pNormList[i].x / magn;// (float)normCount[i];
+      pNormList[i].y = -1.0*pNormList[i].y / magn;// (float)normCount[i];
+      pNormList[i].z = -1.0*pNormList[i].z / magn;// (float)normCount[i];
+    }
 	// Initialize the bounding box vertices
 	pBoundingBox[0].x = MinimumX; pBoundingBox[0].y = MinimumY; pBoundingBox[0].z = MinimumZ;
 	pBoundingBox[1].x = MaximumX; pBoundingBox[1].y = MinimumY; pBoundingBox[1].z = MinimumZ;
@@ -188,10 +341,12 @@ void MeshObject::Load(char* file, float s, float rx, float ry, float rz,
 	pBoundingBox[6].x = MinimumX; pBoundingBox[6].y = MaximumY; pBoundingBox[6].z = MaximumZ;
 	pBoundingBox[7].x = MaximumX; pBoundingBox[7].y = MaximumY; pBoundingBox[7].z = MaximumZ;
 
-	// Apply the initial transformations in order
-	LocalScale(s);
-	WorldRotate((float)(M_PI*rx/180.0), (float)(M_PI*ry/180.0), (float)(M_PI*rz/180.0));
-	WorldTranslate(tx, ty, tz);	
+
+	for(i = 0; i < 16; i ++)
+	{
+		ModelMatrix[i] = 0.0;
+	}
+	ModelMatrix[0] = ModelMatrix[5] = ModelMatrix[10] = ModelMatrix[15]= 1.0;
 }
 
 // Do world-based translation
