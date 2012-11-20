@@ -27,7 +27,7 @@ typedef struct Vector
 	float i, j, k;
 } Vector;
 
-class Face
+class Face 
 {
 public:
 	int v1, v2, v3;
@@ -52,6 +52,7 @@ public:
 	double indRefr;
 	double kRefl;
 	double kRefr;
+	int id;
 };
 
 class point
@@ -128,8 +129,6 @@ typedef struct ray {
 			reflR = reflected->r;
 			reflG = reflected->g;
 			reflB = reflected->b;
-			if (reflR > 0 || reflG > 0 || reflB > 0)
-				r = r;
 		}
 		if (refracted)
 		{
@@ -138,9 +137,9 @@ typedef struct ray {
 			refrG = refracted->g;
 			refrB = refracted->b;
 		}
-		r = r * krg + reflR * kRefl * 5.0 + refrR * kRefr;
-		g = g * krg + reflG * kRefl * 5.0 + refrG * kRefr;
-		b = b * krg + reflB * kRefl * 5.0 + refrB * kRefr;
+		r = r * krg + reflR * kRefl  + refrR * kRefr;
+		g = g * krg + reflG * kRefl  + refrG * kRefr;
+		b = b * krg + reflB * kRefl  + refrB * kRefr;
 	}
 
 } ray;

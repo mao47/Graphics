@@ -57,10 +57,11 @@ typedef struct sphere : GraphicsObject {
 		double c = diffX * diffX + diffY * diffY + diffZ * diffZ - radius * radius;
 
 		double disc = b * b - 4 * a * c;
-		if (disc < 0)
+		if (disc < 0.0)
 			return i;
+
 		double t = (-b - sqrt(b * b - 4 * a * c)) / (2 * a);
-		if (t >= 0)
+		if (t > 0.0)
 		{
 			double inv = 1.0 / radius;
 			i.location.x = r.origin.x + t * r.direction.x;
@@ -77,7 +78,7 @@ typedef struct sphere : GraphicsObject {
 
 		t = (-b + sqrt(b * b - 4 * a * c)) / (2 * a);
 
-		if (t < 0)
+		if (t <= 0.0)
 			return i;
 
 		double inv = 1.0 / radius;
@@ -104,6 +105,7 @@ int sphereCount, lightCount;
 
 void layoutReader(char *filename)
 {
+	int id = 1;
 	FILE *fp;
 	int lights, spheres, meshes;
 	int i;
@@ -192,7 +194,9 @@ void layoutReader(char *filename)
 			s.indRefr = indRefr;
 			s.kRefl = kRefl;
 			s.kRefr = kRefr;
+			s.id = id;
 			sphereList[i] = s;
+			id++;
 		}
 		else
 		{
@@ -231,7 +235,9 @@ void layoutReader(char *filename)
 			meshList[i].indRefr = r;
 			meshList[i].kRefl = krefl;
 			meshList[i].kRefr = krefr;
+			meshList[i].id = id;
 			meshList[i].Load(MeshFile, scale, rx, ry, rz, tx, ty, tz);
+			id++;
 		}
 		else
 		{
@@ -272,43 +278,37 @@ void calcRefractedRay(intersection i, ray *r)
 
 	double ratioIndRefr;
 
-	if (r->inside==true)
+	if (r->inside)
 	{
-		ratioIndRefr = 1.0 / i.object.indRefr;
+		ratioIndRefr = i.object.indRefr;
 	}
 	else
 	{
 		ratioIndRefr = 1.0 / i.object.indRefr;
 	}
 
-	double rdotn =-1*( r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z);
+	double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
+
+
 	double k = 1.0 - ratioIndRefr * ratioIndRefr * (1.0 - rdotn * rdotn);
-
-
+		
 
 	if (k >= 0.0)
 	{
-		if(rdotn <= 0.0)
-		{
-			refracted->direction.x = ratioIndRefr * r->direction.x - (ratioIndRefr * rdotn - sqrt(k)) * i.normal.x;
-			refracted->direction.y = ratioIndRefr * r->direction.y - (ratioIndRefr * rdotn - sqrt(k)) * i.normal.y;
-			refracted->direction.z = ratioIndRefr * r->direction.z - (ratioIndRefr * rdotn - sqrt(k)) * i.normal.z;
-		}
-		else
-		{
-			refracted->direction.x = ratioIndRefr * r->direction.x + (ratioIndRefr * rdotn - sqrt(k)) * i.normal.x;
-			refracted->direction.y = ratioIndRefr * r->direction.y + (ratioIndRefr * rdotn - sqrt(k)) * i.normal.y;
-			refracted->direction.z = ratioIndRefr * r->direction.z + (ratioIndRefr * rdotn - sqrt(k)) * i.normal.z;
-		}
+		double j = (ratioIndRefr * rdotn - sqrt(k));
+
+		refracted->direction.x = j * i.normal.x - ratioIndRefr * r->direction.x;
+		refracted->direction.y = j * i.normal.y - ratioIndRefr * r->direction.y;
+		refracted->direction.z = j * i.normal.z - ratioIndRefr * r->direction.z;
+
 		refracted->origin = i.location;
 		normalize(refracted->direction);
 		refracted->inside = !r->inside;
 
 		r->refracted = refracted;
 
-		refracted->krg = r->krg*0.5;
+		//refracted->krg = r->krg*0.5;
 		refracted->depth = r->depth;
-
 
 		shootRay(refracted);
 	}
@@ -336,7 +336,7 @@ void calcReflectedRay(intersection i, ray *r)
 		reflected->direction.z	= r->direction.z - 2.0 * rdotn * i.normal.z;
 
 		reflected->origin = i.location;
-		reflected->krg = r->krg*0.5;
+		//reflected->krg = r->krg*0.5;
 		r->reflected = reflected;
 		reflected->depth = r->depth;
 
@@ -357,6 +357,7 @@ void shootRay(ray *myRay)
 		myRay = NULL;
 		return;
 	}
+
 	myRay->kRefl = objIntersection.object.kRefl;
 	myRay->kRefr = objIntersection.object.kRefr;
 
@@ -385,6 +386,7 @@ void localIllumination(float &r, float &g, float &b, intersection objIntersectio
 	
 	//sum over light sources for specular and diffuse
 	int i;
+	float lightr, lightg, lightb;
 	for(i = 0; i < lightCount; i ++)
 	{
 		Vector L;
@@ -406,6 +408,33 @@ void localIllumination(float &r, float &g, float &b, intersection objIntersectio
 		L.j /= magnL;
 		L.k /= magnL;
 
+		// Check if light is blocked
+		
+		ray *r1 = new ray();
+		r1->direction.x = objIntersection.location.x - lightList[i].x;
+		r1->direction.y = objIntersection.location.y - lightList[i].y;
+		r1->direction.z = objIntersection.location.z - lightList[i].z;
+		r1->origin.x = lightList[i].x;
+		r1->origin.y = lightList[i].y;
+		r1->origin.z = lightList[i].z;
+
+		lightr = lightList[i].r;
+		lightg = lightList[i].g;
+		lightb = lightList[i].b;
+
+		intersection inter = getIntersections(r1);
+		if (inter.type != type_none &&
+			(inter.location.x - objIntersection.location.x > 0.1 ||
+			inter.location.y - objIntersection.location.y > 0.1 ||
+			inter.location.z - objIntersection.location.z > 0.1))
+		{
+			// attenuate ray
+			
+			lightr *= inter.object.kRefr;
+			lightg *= inter.object.kRefr;
+			lightb *= inter.object.kRefr;
+		}
+		
 		//N dot L for diffuse component
 		float ndotl = (L.i*objIntersection.normal.x + L.j*objIntersection.normal.y
 			+ L.k*objIntersection.normal.z);
@@ -425,11 +454,11 @@ void localIllumination(float &r, float &g, float &b, intersection objIntersectio
 		float rdotv = (V.i*R.i + V.j*R.j + V.k*R.k);
 		float rdotvexp = pow(rdotv, (float)objIntersection.object.specExp);
 
-		r += lightList[i].r * (objIntersection.object.kDiff * objIntersection.object.rDiff
+		r += lightr * (objIntersection.object.kDiff * objIntersection.object.rDiff
 			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec * rdotvexp);
-		g += lightList[i].g * (objIntersection.object.kDiff * objIntersection.object.gDiff
+		g += lightg * (objIntersection.object.kDiff * objIntersection.object.gDiff
 			* ndotl + objIntersection.object.kSpec * objIntersection.object.gSpec * rdotvexp);
-		b += lightList[i].b * (objIntersection.object.kDiff * objIntersection.object.bDiff
+		b += lightb * (objIntersection.object.kDiff * objIntersection.object.bDiff
 			* ndotl + objIntersection.object.kSpec * objIntersection.object.bSpec * rdotvexp);
 
 	}
@@ -443,15 +472,15 @@ intersection getIntersections(ray *myRay)
 	//spheres
 	int i = 0;
 	intersection objIntersection;
+	objIntersection.object.id = 0;
 	objIntersection.type = type_none;
 	
 	for( i = 0; i < sphereCount; i++)
 	{
-		double tempdist;
 		intersection inter = sphereList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			if(inter.distance < distance && inter.distance > 0.001)
+			if(inter.distance < distance && inter.distance > 0.0001)
 			{
 				distance = inter.distance;
 				objIntersection = inter;
@@ -465,7 +494,7 @@ intersection getIntersections(ray *myRay)
 		intersection inter = meshList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			if(inter.distance < distance && inter.distance > 0.001)
+			if(inter.distance < distance && inter.distance > 0.0001)
 			{
 				distance = inter.distance;
 				objIntersection = inter;
@@ -623,11 +652,11 @@ int main(int argc, char* argv[])
 {    
 	imgPlnSize = 5.0;
 	imgPlnDist = 8.0;
-	fb = new FrameBuffer(256, 256);
+	fb = new FrameBuffer(INITIAL_RES, INITIAL_RES);
 
 	//BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
-	layoutReader("../samples/transparent_sphere_and_teapot.rtl");
+	layoutReader("../samples/red_sphere_and_teapot.rtl");
 	
 
     // Initialize GLUT
