@@ -254,6 +254,9 @@ void drawRect(double x, double y, double w, double h)
 void normalize(point &p)
 {
 	double invlength = 1.0 / sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+	p.x *= invlength;
+	p.y *= invlength;
+	p.z *= invlength;
 }
 
 void calcRefractedRay(intersection i, ray *r)
@@ -265,30 +268,40 @@ void calcRefractedRay(intersection i, ray *r)
 
 	// normalize vectors
 	normalize(i.normal);
+	normalize(r->direction);
 
 	double ratioIndRefr;
 
-	if (r->inside)
+	if (r->inside==true)
 	{
 		ratioIndRefr = 1.0 / i.object.indRefr;
 	}
 	else
 	{
-		ratioIndRefr = i.object.indRefr;
+		ratioIndRefr = 1.0 / i.object.indRefr;
 	}
 
-	double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
+	double rdotn =-1*( r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z);
 	double k = 1.0 - ratioIndRefr * ratioIndRefr * (1.0 - rdotn * rdotn);
 
 
 
 	if (k >= 0.0)
 	{
-		refracted->direction.x = ratioIndRefr * r->direction.x - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.x;
-		refracted->direction.y = ratioIndRefr * r->direction.y - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.y;
-		refracted->direction.z = ratioIndRefr * r->direction.z - (ratioIndRefr * rdotn + sqrt(k)) * i.normal.z;
+		if(rdotn <= 0.0)
+		{
+			refracted->direction.x = ratioIndRefr * r->direction.x - (ratioIndRefr * rdotn - sqrt(k)) * i.normal.x;
+			refracted->direction.y = ratioIndRefr * r->direction.y - (ratioIndRefr * rdotn - sqrt(k)) * i.normal.y;
+			refracted->direction.z = ratioIndRefr * r->direction.z - (ratioIndRefr * rdotn - sqrt(k)) * i.normal.z;
+		}
+		else
+		{
+			refracted->direction.x = ratioIndRefr * r->direction.x + (ratioIndRefr * rdotn - sqrt(k)) * i.normal.x;
+			refracted->direction.y = ratioIndRefr * r->direction.y + (ratioIndRefr * rdotn - sqrt(k)) * i.normal.y;
+			refracted->direction.z = ratioIndRefr * r->direction.z + (ratioIndRefr * rdotn - sqrt(k)) * i.normal.z;
+		}
 		refracted->origin = i.location;
-
+		normalize(refracted->direction);
 		refracted->inside = !r->inside;
 
 		r->refracted = refracted;
@@ -541,7 +554,7 @@ void renderScene()
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
-			r->depth = 5;
+			r->depth = 7;
 			r->inside = false;
 			r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
 			r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
@@ -614,7 +627,7 @@ int main(int argc, char* argv[])
 
 	//BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
-	layoutReader("../samples/red_sphere_and_teapot.rtl");
+	layoutReader("../samples/transparent_sphere_and_teapot.rtl");
 	
 
     // Initialize GLUT
