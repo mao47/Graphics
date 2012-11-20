@@ -100,6 +100,8 @@ typedef struct ray {
 		krg = 1.0;
 		indRefr = 1.0;
 		inside = false;
+		kRefl = 0.0;
+		kRefr = 0.0;
 	}
 	point origin;
 	point direction;

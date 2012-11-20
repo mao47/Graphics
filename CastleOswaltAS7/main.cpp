@@ -34,6 +34,8 @@ FrameBuffer* fb;
 MeshObject* meshList;
 int meshCount;
 
+intersection getIntersections(ray *myRay);
+
 typedef struct sphere : GraphicsObject {
 	point center;
 	double radius;
@@ -248,24 +250,20 @@ void drawRect(double x, double y, double w, double h)
 	glVertex2f(x, y+h);
 }
 
+void normalize(point &p)
+{
+	double invlength = 1.0 / sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+}
 
 void calcRefractedRay(intersection i, ray *r)
 {
 	if (i.object.kRefr <= 0)
 		return;
+
 	ray *refracted = new ray();
 
-	// normalize normal vector
-	double invlength = 1.0 / sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
-	i.normal.x *= invlength;
-	i.normal.y *= invlength;
-	i.normal.z *= invlength;
-
-	// normalize incident vector
-	invlength = 1.0 / sqrt(r->direction.x * r->direction.x + r->direction.y * r->direction.y + r->direction.z * r->direction.z);
-	r->direction.x *= invlength;
-	r->direction.y *= invlength;
-	r->direction.z *= invlength;
+	// normalize vectors
+	normalize(i.normal);
 
 	double ratioIndRefr;
 
@@ -313,10 +311,7 @@ void calcReflectedRay(intersection i, ray *r)
 		ray * reflected = new ray();
 
 		// normalize normal vector
-		double invlength = 1.0 / sqrt(i.normal.x * i.normal.x + i.normal.y * i.normal.y + i.normal.z * i.normal.z);
-		i.normal.x *= invlength;
-		i.normal.y *= invlength;
-		i.normal.z *= invlength;
+		normalize(i.normal);
 
 		double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
 
@@ -336,56 +331,14 @@ void calcReflectedRay(intersection i, ray *r)
 
 void shootRay(ray *myRay)
 {
-	myRay->kRefl = 0;
-	myRay->kRefr = 0;
-
 	// normalize ray 
-	double invlength = 1.0 / sqrt(myRay->direction.x * myRay->direction.x + 
-		myRay->direction.y * myRay->direction.y + 
-		myRay->direction.z * myRay->direction.z);
-
-	myRay->direction.x *= invlength;
-	myRay->direction.y *= invlength;
-	myRay->direction.z *= invlength;
-
-	//get intersections
-	double distance = 10000000000;
-	//spheres
-	int i = 0;
-	intersection objIntersection;
-	objIntersection.type = type_none;
-	for( i = 0; i < sphereCount; i++)
-	{
-		double tempdist;
-		intersection inter = sphereList[i].intersects(*myRay);
-		if(inter.type != type_none)
-		{
-			if(inter.distance < distance && inter.distance > 0)
-			{
-				distance = inter.distance;
-				objIntersection = inter;
-			}
-		}
-	}
-	//meshes
-	
-	for(i = 0; i < meshCount; i++)
-	{
-		intersection inter = meshList[i].intersects(*myRay);
-		if(inter.type != type_none)
-		{
-			if(inter.distance < distance && inter.distance > 0)
-			{
-				distance = inter.distance;
-				objIntersection = inter;
-			}
-		}
-	}
-	
+	normalize(myRay->direction);
 	
 	myRay->r = 0;
 	myRay->g = 0;
 	myRay->b = 0;
+
+	intersection objIntersection = getIntersections(myRay);
 
 	//select closest point and object
 	if(objIntersection.type == type_none)
@@ -402,6 +355,7 @@ void shootRay(ray *myRay)
 	b = 0.3 * objIntersection.object.bAmb * objIntersection.object.kAmb;
 	
 	//sum over light sources for specular and diffuse
+	int i;
 	for(i = 0; i < lightCount; i ++)
 	{
 		Vector L;
@@ -442,8 +396,6 @@ void shootRay(ray *myRay)
 		float rdotv = (V.i*R.i + V.j*R.j + V.k*R.k);
 		float rdotvexp = pow(rdotv, (float)objIntersection.object.specExp);
 
-		float bl = lightList[i].b;
-
 		r += lightList[i].r * (objIntersection.object.kDiff * objIntersection.object.rDiff
 			* ndotl + objIntersection.object.kSpec * objIntersection.object.rSpec * rdotvexp);
 		g += lightList[i].g * (objIntersection.object.kDiff * objIntersection.object.gDiff
@@ -469,6 +421,45 @@ void shootRay(ray *myRay)
 		myRay = NULL;
 }
 
+intersection getIntersections(ray *myRay)
+{
+	
+	//get intersections
+	double distance = 10000000000;
+	//spheres
+	int i = 0;
+	intersection objIntersection;
+	objIntersection.type = type_none;
+	
+	for( i = 0; i < sphereCount; i++)
+	{
+		double tempdist;
+		intersection inter = sphereList[i].intersects(*myRay);
+		if(inter.type != type_none)
+		{
+			if(inter.distance < distance && inter.distance > 0)
+			{
+				distance = inter.distance;
+				objIntersection = inter;
+			}
+		}
+	}
+	//meshes
+	
+	for(i = 0; i < meshCount; i++)
+	{
+		intersection inter = meshList[i].intersects(*myRay);
+		if(inter.type != type_none)
+		{
+			if(inter.distance < distance && inter.distance > 0)
+			{
+				distance = inter.distance;
+				objIntersection = inter;
+			}
+		}
+	}
+	return objIntersection;
+}
 
 // The display function. It is called whenever the window needs
 // redrawing (ie: overlapping window moves, resize, maximize)
@@ -641,7 +632,7 @@ int main(int argc, char* argv[])
 {    
 	imgPlnSize = 5.0;
 	imgPlnDist = 8.0;
-	fb = new FrameBuffer(128, 128);
+	fb = new FrameBuffer(256, 256);
 
 	//BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
