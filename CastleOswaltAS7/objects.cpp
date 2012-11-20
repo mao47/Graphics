@@ -168,7 +168,7 @@ intersection MeshObject::intersects(ray myRay)
 			intersection tempi;
 			tempi.type = type_face;
 			tempi.distance = (double)t;
-			if((besti.type == type_none || besti.distance > tempi.distance) && tempi.distance > 0)
+			if((besti.type == type_none || besti.distance > tempi.distance) && tempi.distance > 0.001)
 			{
 				//new best intersection
 				tempi.object = (GraphicsObject)*this;
