@@ -28,6 +28,8 @@ int window_width, window_height;    // Window dimensions
 
 const int INITIAL_RES = 400;
 
+float imgPlnSize, imgPlnDist;
+
 FrameBuffer* fb;
 MeshObject* meshList;
 int meshCount;
@@ -472,10 +474,10 @@ void	display(void)
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
-			r->depth = 3;
+			r->depth = 7;
 			r->direction.x = 5.0 * (x + 0.5 - width) / width;
 			r->direction.y = 5.0 * (y + 0.5 - height) / height;
-			r->direction.z = -8.0;
+			r->direction.z = -imgPlnDist;
 			shootRay(r);
 			r->calculateValues();
 			cl.r = r->r;
@@ -540,6 +542,14 @@ void	keyboard(unsigned char key, int x, int y)
 		fb->Resize(fb->GetHeight()*2, fb->GetWidth()*2);
 		BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 		break;
+	case '[':
+		imgPlnDist = imgPlnDist / 1.5;
+		printf("Image plane distance: %f \n", imgPlnDist); 
+		break;
+	case ']':
+		imgPlnDist = imgPlnDist * 1.5;
+		printf("Image plane distance: %f \n", imgPlnDist); 
+		break;
     default:
 		break;
     }
@@ -552,7 +562,8 @@ void	keyboard(unsigned char key, int x, int y)
 
 int main(int argc, char* argv[])
 {    
-
+	imgPlnSize = 5.0;
+	imgPlnDist = 8.0;
 	fb = new FrameBuffer(256, 256);
 
 	BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
