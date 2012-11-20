@@ -447,7 +447,7 @@ intersection getIntersections(ray *myRay)
 		intersection inter = sphereList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			if(inter.distance < distance && inter.distance > 0)
+			if(inter.distance < distance && inter.distance > 0.001)
 			{
 				distance = inter.distance;
 				objIntersection = inter;
@@ -461,7 +461,7 @@ intersection getIntersections(ray *myRay)
 		intersection inter = meshList[i].intersects(*myRay);
 		if(inter.type != type_none)
 		{
-			if(inter.distance < distance && inter.distance > 0)
+			if(inter.distance < distance && inter.distance > 0.001)
 			{
 				distance = inter.distance;
 				objIntersection = inter;
