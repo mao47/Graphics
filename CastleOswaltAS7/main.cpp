@@ -322,9 +322,6 @@ void calcReflectedRay(intersection i, ray *r)
 		reflected->direction.y	= r->direction.y - 2.0 * rdotn * i.normal.y;
 		reflected->direction.z	= r->direction.z - 2.0 * rdotn * i.normal.z;
 
-		//normalize reflection direction
-		normalize(r->direction);
-
 		reflected->origin = i.location;
 
 		r->reflected = reflected;
