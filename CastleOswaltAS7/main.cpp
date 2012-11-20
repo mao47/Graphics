@@ -473,8 +473,8 @@ void	display(void)
 		{
 			r = new ray();
 			r->depth = 3;
-			r->direction.x = 5.0 * (x - width) / width;
-			r->direction.y = 5.0 * (y - height) / height;
+			r->direction.x = 5.0 * (x + 0.5 - width) / width;
+			r->direction.y = 5.0 * (y + 0.5 - height) / height;
 			r->direction.z = -8.0;
 			shootRay(r);
 			r->calculateValues();
