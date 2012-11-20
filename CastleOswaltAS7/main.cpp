@@ -469,6 +469,7 @@ void	display(void)
 	float height = fb->GetHeight() / 2.0;
 	for(int y = 0; y < fb->GetHeight(); y++)
 	{
+		printf("line: %d\n", y);
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
@@ -553,7 +554,7 @@ void	keyboard(unsigned char key, int x, int y)
 int main(int argc, char* argv[])
 {    
 
-	fb = new FrameBuffer(256, 256);
+	fb = new FrameBuffer(500, 500);
 
 	BresenhamLine(fb, fb->GetWidth()*0.1, fb->GetHeight()*0.1, fb->GetWidth()*0.9, fb->GetHeight()*0.9, Color(1,0,0));
 
