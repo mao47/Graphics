@@ -65,12 +65,18 @@ int MouseY = 0;
 bool MouseLeft = false;
 bool MouseRight = false;
 
+
+
+
+point origin = {0,0,0};
+
+
 float magnitude(point p)
 {
 	return sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
 }
 
-void normalize(point &v)
+point normalize(point &v)
 {
 	float mag = magnitude(v);
 	v.x /= mag;
@@ -121,7 +127,8 @@ void DisplayFunc(void)
 	//	setParameters(program);
 
 	// Load image from tga file
-	TGA *TGAImage	= new TGA("./sphericalenvironmentmap/house2.tga");
+	//TGA *TGAImage	= new TGA("./sphericalenvironmentmap/house2.tga");
+	TGA *TGAImage	= new TGA("./planartexturemap/abstract2.tga");
 	//TGA *TGAImage	= new TGA("./cubicenvironmentmap/cm_right.tga");
 
 	// Use to dimensions of the image as the texture dimensions
@@ -260,6 +267,25 @@ point getPlanarTextureCoordinates(point pos, float rangeX, float rangeY)
 	pos.y /= rangeY;
 	pos.y += 0.5;
 	return pos;
+}
+point getIntermSphere(point pos, point center, float radius) //get sphere point by projecting radially out
+{
+	point p;
+	point normal = {pos.x - center.x, pos.y - center.y, pos.z - center.z};
+	normalize(normal);
+	p.x = center.x + radius * normal.x;
+	p.y = center.y + radius * normal.y;
+	p.z = center.z + radius * normal.z;
+	return p;
+	
+}
+point getIntermSphere(point pos, point center)
+{
+	return getIntermSphere(pos, center, 1);
+}
+point getIntermSphere(point pos)
+{
+	return getIntermSphere(pos, origin);
 }
 
 
