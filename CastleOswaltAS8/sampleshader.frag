@@ -6,6 +6,7 @@ varying vec3 vNormal, vLight, vView, vHalfway;
 uniform sampler2D color_texture;
 uniform sampler2D bump_map;
 uniform bool bumpmapMode;
+uniform vec2 resolution;
 
 vec3 AmbientComponent(void)
 {
