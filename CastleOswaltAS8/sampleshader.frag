@@ -46,7 +46,7 @@ vec3 pertNormal(float2 texcoords, float offset)
 void main(void)
 {
    if (bumpmapMode)
-      vNormal += pertNormal;
+      vNormal += pertNormal(gl_FragCoord.xy / resolution.xy, 0.01);
 	  
    // Phong Illumination Model
    
