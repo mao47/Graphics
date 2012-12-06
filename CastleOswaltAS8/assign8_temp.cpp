@@ -65,7 +65,34 @@ int MouseY = 0;
 bool MouseLeft = false;
 bool MouseRight = false;
 
+float magnitude(point p)
+{
+	return sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+}
 
+void normalize(point &v)
+{
+	float mag = magnitude(v);
+	v.x /= mag;
+	v.y /= mag;
+	v.z /= mag;
+	return v;
+}
+
+point calcHalfwayVector(point view, point light)
+{
+	point combined;
+	combined.x = view.x + light.x;
+	combined.y = view.y + light.y;
+	combined.z = view.z + light.z;
+	
+	float combinedMagnitude = magnitude(combined) * 2.0;
+	combined.x /= combinedMagnitude;
+	combined.y /= combinedMagnitude;
+	combined.z /= combinedMagnitude;
+
+	return combined;
+}
 
 
 
@@ -205,7 +232,35 @@ void MotionFunc(int x, int y)
 }
 
 
+point getSphericalTextureCoordinates(point pos, point center) // note: only x and y are returned
+{
+	point p;
+	point normal = {pos.x - center.x, pos.y - center.y, pos.z - center.z};
+	normalize(normal);
+	p.x = asin(normal.x) / PI + 0.5;
+	p.y = asin(normal.y) / PI + 0.5;
+	return p;
+}
 
+point getSphericalTextureCoordinates(point pos) // assumes center is (0, 0, 0)
+{
+	point p;
+	normalize(pos);
+	p.x = asin(pos.x) / PI + 0.5;
+	p.y = asin(pos.y) / PI + 0.5;
+	return p;
+
+}
+
+point getPlanarTextureCoordinates(point pos, float rangeX, float rangeY)
+{
+	pos.z = 0;
+	pos.x /= rangeX;
+	pos.x += 0.5;
+	pos.y /= rangeY;
+	pos.y += 0.5;
+	return pos;
+}
 
 
 //Motion and camera controls
@@ -277,7 +332,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100,100);
 	glutInitWindowSize(320,320);
-	glutCreateWindow("Assignment 6");
+	glutCreateWindow("Assignment 8");
 
 
 
