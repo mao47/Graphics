@@ -275,12 +275,13 @@ void calcRefractedRay(intersection i, ray *r)
 	// normalize vectors
 	normalize(i.normal);
 	normalize(r->direction);
-
+	double sign = 1.0;
 	double ratioIndRefr;
 
 	if (r->inside)
 	{
 		ratioIndRefr = i.object.indRefr;
+		sign = -1.0;
 	}
 	else
 	{
@@ -288,18 +289,20 @@ void calcRefractedRay(intersection i, ray *r)
 	}
 
 	double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
-
+	//
+	//if(rdotn < 0.0)
+	//	sign = -1.0;
 
 	double k = 1.0 - ratioIndRefr * ratioIndRefr * (1.0 - rdotn * rdotn);
 		
 
 	if (k >= 0.0)
 	{
-		double j = (ratioIndRefr * rdotn - sqrt(k));
+		double j = (ratioIndRefr * sign * rdotn - sqrt(k));
 
-		refracted->direction.x = j * i.normal.x - ratioIndRefr * r->direction.x;
-		refracted->direction.y = j * i.normal.y - ratioIndRefr * r->direction.y;
-		refracted->direction.z = j * i.normal.z - ratioIndRefr * r->direction.z;
+		refracted->direction.x = j * sign*i.normal.x - ratioIndRefr * r->direction.x;
+		refracted->direction.y = j * sign*i.normal.y - ratioIndRefr * r->direction.y;
+		refracted->direction.z = j * sign*i.normal.z - ratioIndRefr * r->direction.z;
 
 		refracted->origin = i.location;
 		normalize(refracted->direction);
@@ -325,15 +328,18 @@ void calcReflectedRay(intersection i, ray *r)
 	{
 		//calculate reflection vector
 		ray * reflected = new ray();
+		double sign = 1.0;
+		if(r->inside)
+			sign = -1.0;
 		reflected->depth = r->depth ;
 		// normalize normal vector
 		normalize(i.normal);
 
-		double rdotn = r->direction.x * i.normal.x + r->direction.y * i.normal.y + r->direction.z * i.normal.z;
+		double rdotn = r->direction.x * sign*i.normal.x + r->direction.y * sign*i.normal.y + r->direction.z * sign*i.normal.z;
 
-		reflected->direction.x	= r->direction.x - 2.0 * rdotn * i.normal.x;
-		reflected->direction.y	= r->direction.y - 2.0 * rdotn * i.normal.y;
-		reflected->direction.z	= r->direction.z - 2.0 * rdotn * i.normal.z;
+		reflected->direction.x	= r->direction.x - 2.0 * rdotn * sign*i.normal.x;
+		reflected->direction.y	= r->direction.y - 2.0 * rdotn * sign*i.normal.y;
+		reflected->direction.z	= r->direction.z - 2.0 * rdotn * sign*i.normal.z;
 
 		reflected->origin = i.location;
 		//reflected->krg = r->krg*0.5;
@@ -583,7 +589,7 @@ void renderScene()
 		for(int x = 0; x < fb->GetHeight(); x++)
 		{
 			r = new ray();
-			r->depth = 7;
+			r->depth = 14;
 			r->inside = false;
 			r->direction.x = imgPlnSize * (x + 0.5 - width) / width;
 			r->direction.y = imgPlnSize * (y + 0.5 - height) / height;
