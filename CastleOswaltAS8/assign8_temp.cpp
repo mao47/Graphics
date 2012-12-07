@@ -154,10 +154,12 @@ point getSphericalTextureCoordinates(point pos, point center) // note: only x an
 point getSphericalTextureCoordinates(point pos) // assumes center is (0, 0, 0)
 {
 	point p;
-	normalize(pos);
-	p.y = acos(pos.y) / PI; //z = R cos(v)
-	p.x = acos(pos.x / (sin(PI*p.y)))/ (2*PI);
-	p.y *= 2;
+	normalize(pos) ;
+	p.x = atan(pos.y/pos.x) /(2*PI) + PI/2;
+	p.y = acos(pos.z) /(PI);
+	//p.y = acos(pos.z) / PI; //z = R cos(v)
+	//p.x = acos(pos.x / (sin(PI*p.y)))/ (2*PI);
+	p.y *= 1;
 	p.y += 0;
 	p.x *= 1;
 	p.x += 0;
@@ -429,7 +431,7 @@ int main(int argc, char **argv)
 	
 	//setShaders();
 	
-	meshReader("teapot.obj", 1);
+	meshReader("sphere.obj", 1);
 
 	glutMainLoop();
 
