@@ -69,7 +69,48 @@ bool MouseRight = false;
 
 
 point origin = {0,0,0};
+int algSelect = 4;
+int algCount = 8;
+char algType [] = {'t','t','t','t','t','e','e'/*,'e','e'*/,'b'/*,'b'*/};//texture, environment, bump
+char objType [] = {'p','s','t','s','t','s','t'/*,'s','t'*/,'p'/*,'s'*/};//plane, sphere, teapot
+char mapType [] = {'p','p','p','s','s','s','s'/*,'c','c'*/,'p'/*,'s'*/};//planar, spherical
+char* textureName;
+char* grayName;
+bool bumpMap = false;
 
+
+void setTexture(char alg, char obj, char map)
+{
+	bumpMap = false;
+
+	if(alg == 't')
+	{
+		if(map == 'p')
+			textureName = "./planartextruemap/abstract2.tga";
+		else if (map == 's')
+			textureName = "./sphericaltexturemap/earth2.tga";
+	}
+	else if (alg == 'e')
+	{
+		if(map == 's')
+			textureName = "./sphericalenvironmentmap/house2.tga";
+	}
+	else if (alg == 'b')
+	{
+		if(map == 'p')
+		{
+			textureName = "./planarbumpmap/abstract2.tga";
+			grayName = "./planarbumpmap/abstract_gray2.tga";
+			bumpMap = true;
+		}
+		else if (map == 's')
+		{
+			textureName = "./sphericalbumpmap/earth2.tga";
+			grayName = "./planarbumpmap/earth_gray2.tga";
+			bumpMap = true;
+		}
+	}
+}
 
 float magnitude(point p)
 {
@@ -100,6 +141,65 @@ point calcHalfwayVector(point view, point light)
 	return combined;
 }
 
+point getSphericalTextureCoordinates(point pos, point center) // note: only x and y are returned
+{
+	point p;
+	point normal = {pos.x - center.x, pos.y - center.y, pos.z - center.z};
+	normalize(normal);
+	p.x = asin(normal.x) / PI + 0.5;
+	p.y = asin(normal.y) / PI + 0.5;
+	return p;
+}
+
+point getSphericalTextureCoordinates(point pos) // assumes center is (0, 0, 0)
+{
+	point p;
+	normalize(pos);
+	p.y = acos(pos.y) / PI; //z = R cos(v)
+	p.x = acos(pos.x / (sin(PI*p.y)))/ (2*PI);
+	p.y *= 2;
+	p.y += 0;
+	p.x *= 1;
+	p.x += 0;
+	return p;
+
+}
+
+point getPlanarTextureCoordinates(point pos, float rangeX, float rangeY)
+{
+	pos.z = 0;
+	pos.x /= rangeX;
+	pos.x += 0.5;
+	pos.y /= rangeY;
+	pos.y += 0.5;
+	return pos;
+}
+point getIntermSphere(point pos, point center, float radius) //get sphere point by projecting radially out
+{
+	point p;
+	point normal = {pos.x - center.x, pos.y - center.y, pos.z - center.z};
+	normalize(normal);
+	p.x = center.x + radius * normal.x;
+	p.y = center.y + radius * normal.y;
+	p.z = center.z + radius * normal.z;
+	return p;
+	
+}
+point getIntermSphere(point pos, point center)
+{
+	return getIntermSphere(pos, center, 1);
+}
+point getIntermSphere(point pos)
+{
+	return getIntermSphere(pos, origin);
+}
+point texCoord(char map, point vert)
+{
+	if(map == 'p')
+		return getPlanarTextureCoordinates(vert,1,1);
+	else
+		return getSphericalTextureCoordinates(vert);
+}
 
 
 void DisplayFunc(void) 
@@ -124,11 +224,11 @@ void DisplayFunc(void)
 	glEnable(GL_DEPTH_TEST);	
 	glEnable(GL_TEXTURE_2D);
 
-	//	setParameters(program);
+		//setParameters(program);
 
 	// Load image from tga file
 	//TGA *TGAImage	= new TGA("./sphericalenvironmentmap/house2.tga");
-	TGA *TGAImage	= new TGA("./planartexturemap/abstract2.tga");
+	TGA *TGAImage	= new TGA("./sphericaltexturemap/earth2.tga");
 	//TGA *TGAImage	= new TGA("./cubicenvironmentmap/cm_right.tga");
 
 	// Use to dimensions of the image as the texture dimensions
@@ -166,25 +266,31 @@ void DisplayFunc(void)
 
     delete TGAImage;
 
+
+	
 	for (int i = 0; i < faces; i++)
 	{
 		
 		glBegin(GL_TRIANGLES);
-			point v1, v2, v3, n1, n2, n3;
+			point v1, v2, v3, n1, n2, n3, tx1, tx2, tx3;
 			v1 = vertList[faceList[i].v1];
 			v2 = vertList[faceList[i].v2];
 			v3 = vertList[faceList[i].v3];
 			n1 = vertList[faceList[i].v1];
 			n2 = vertList[faceList[i].v2];
 			n3 = vertList[faceList[i].v3];
+			tx1 = texCoord(mapType[algSelect], v1);
+			tx2 = texCoord(mapType[algSelect], v2);
+			tx3 = texCoord(mapType[algSelect], v3);
+
 			glNormal3f(n1.x, n1.y, n1.z);
-			glTexCoord2f (v1.x, v1.y);
+			glTexCoord2f (tx1.x, tx1.y);
 			glVertex3f(v1.x, v1.y, v1.z);
 			glNormal3f(n2.x, n2.y, n2.z);
-			glTexCoord2f (v2.x, v2.y);
+			glTexCoord2f (tx2.x, tx2.y);
 			glVertex3f(v2.x, v2.y, v2.z);
 			glNormal3f(n3.x, n3.y, n3.z);
-			glTexCoord2f (v3.x, v3.y);
+			glTexCoord2f (tx3.x, tx3.y);
 			glVertex3f(v3.x, v3.y, v3.z);
 		glEnd();
 
@@ -239,54 +345,6 @@ void MotionFunc(int x, int y)
 }
 
 
-point getSphericalTextureCoordinates(point pos, point center) // note: only x and y are returned
-{
-	point p;
-	point normal = {pos.x - center.x, pos.y - center.y, pos.z - center.z};
-	normalize(normal);
-	p.x = asin(normal.x) / PI + 0.5;
-	p.y = asin(normal.y) / PI + 0.5;
-	return p;
-}
-
-point getSphericalTextureCoordinates(point pos) // assumes center is (0, 0, 0)
-{
-	point p;
-	normalize(pos);
-	p.x = asin(pos.x) / PI + 0.5;
-	p.y = asin(pos.y) / PI + 0.5;
-	return p;
-
-}
-
-point getPlanarTextureCoordinates(point pos, float rangeX, float rangeY)
-{
-	pos.z = 0;
-	pos.x /= rangeX;
-	pos.x += 0.5;
-	pos.y /= rangeY;
-	pos.y += 0.5;
-	return pos;
-}
-point getIntermSphere(point pos, point center, float radius) //get sphere point by projecting radially out
-{
-	point p;
-	point normal = {pos.x - center.x, pos.y - center.y, pos.z - center.z};
-	normalize(normal);
-	p.x = center.x + radius * normal.x;
-	p.y = center.y + radius * normal.y;
-	p.z = center.z + radius * normal.z;
-	return p;
-	
-}
-point getIntermSphere(point pos, point center)
-{
-	return getIntermSphere(pos, center, 1);
-}
-point getIntermSphere(point pos)
-{
-	return getIntermSphere(pos, origin);
-}
 
 
 //Motion and camera controls
@@ -487,7 +545,7 @@ void setShaders()
 	glUseProgramObjectARB(p);
 
 	    
-//	setParameters(p);
+	setParameters(p);
 
 }
 
@@ -546,8 +604,8 @@ void setParameters(GLuint program)
 	glUniform1fARB(exponent_loc,exponent);
 
 	//Access attributes in vertex shader
-	tangent_loc = glGetAttribLocationARB(program,"tang");
-	glVertexAttrib1fARB(tangent_loc,tangent);
+	//tangent_loc = glGetAttribLocationARB(program,"tang");
+	//glVertexAttrib1fARB(tangent_loc,tangent);
 
 }
 

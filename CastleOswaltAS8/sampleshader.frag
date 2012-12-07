@@ -15,8 +15,8 @@ vec3 AmbientComponent(void)
 
 vec3 DiffuseComponent(void)
 {
-	vec4 color = texture2D(color_texture, 
-   return vec3(color * max(0.0, dot(vNormal, vLight)));
+	//vec4 color = texture2D(color_texture, 
+   return vec3(DiffuseContribution * max(0.0, dot(vNormal, vLight)));
 }
 
 vec3 SpecularComponent(void)
