@@ -71,7 +71,7 @@ bool MouseRight = false;
 
 
 point origin = {0,0,0};
-int algSelect = 4;
+int algSelect = 0;
 int algCount = 8;
 char algType [] = {'t','t','t','t','t','e','e'/*,'e','e'*/,'b'/*,'b'*/};//texture, environment, bump
 char objType [] = {'p','s','t','s','t','s','t'/*,'s','t'*/,'p'/*,'s'*/};//plane, sphere, teapot
@@ -94,7 +94,7 @@ void setTexture(char alg, char obj, char map)
 	if(alg == 't')
 	{
 		if(map == 'p')
-			textureName = "./planartextruemap/abstract2.tga";
+			textureName = "./planartexturemap/abstract2.tga";
 		else if (map == 's')
 			textureName = "./sphericaltexturemap/earth2.tga";
 	}
@@ -155,7 +155,7 @@ point getSphericalTextureCoordinates(point pos, point center) // note: only x an
 	point normal = {pos.x - center.x, pos.y - center.y, pos.z - center.z};
 	normalize(normal);
 	p.x = asin(normal.x) / PI + 0.5;
-	p.y = asin(normal.y) / PI + 0.5;
+	p.y = (asin(normal.y) / PI + 0.5);
 	return p;
 }
 
@@ -163,8 +163,9 @@ point getSphericalTextureCoordinates(point pos) // assumes center is (0, 0, 0)
 {
 	point p;
 	normalize(pos) ;
-	p.x = atan(pos.y/pos.x) /(2*PI) + PI/2;
-	p.y = acos(pos.z) /(PI);
+	p.x = -(atan(pos.z/pos.x) /(2*PI) + PI/2);
+	if(pos.x > 0) p.x += 0.5;
+	p.y = -(acos(pos.y) /(PI));
 	//p.y = acos(pos.z) / PI; //z = R cos(v)
 	//p.x = acos(pos.x / (sin(PI*p.y)))/ (2*PI);
 	p.y *= 1;
@@ -177,12 +178,13 @@ point getSphericalTextureCoordinates(point pos) // assumes center is (0, 0, 0)
 
 point getPlanarTextureCoordinates(point pos, float rangeX, float rangeY)
 {
-	pos.z = 0;
-	pos.x /= rangeX;
-	pos.x += 0.5;
-	pos.y /= rangeY;
-	pos.y += 0.5;
-	return pos;
+	point p;
+	p.z = 0;
+	p.x = pos.x / rangeX;
+	p.x += 0.5;
+	p.y = pos.y / rangeY;
+	p.y += 0.5;
+	return p;
 }
 point getIntermSphere(point pos, point center, float radius) //get sphere point by projecting radially out
 {
