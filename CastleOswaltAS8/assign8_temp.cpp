@@ -67,7 +67,7 @@ int MouseY = 0;
 bool MouseLeft = false;
 bool MouseRight = false;
 
-
+GLuint myTexture;
 
 
 point origin = {0,0,0};
@@ -79,6 +79,52 @@ char mapType [] = {'p','p','p','s','s','s','s'/*,'c','c'*/,'p'/*,'s'*/};//planar
 char* textureName;
 char* grayName;
 bool bumpMap = false;
+
+GLuint LoadTexture( const char * filename)
+{
+	GLuint id;	
+	// Load image from tga file
+	//TGA *TGAImage	= new TGA("./sphericalenvironmentmap/house2.tga");
+	TGA *TGAImage	= new TGA(filename);
+	//TGA *TGAImage	= new TGA("./cubicenvironmentmap/cm_right.tga");
+
+	// Use to dimensions of the image as the texture dimensions
+	uint width	= TGAImage->GetWidth();
+	uint height	= TGAImage->GetHeigth();
+	
+	// The parameters for actual textures are changed
+
+	glGenTextures(1, &id);
+
+	glBindTexture(GL_TEXTURE_2D, id);
+
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+
+	// Finaly build the mipmaps
+	glTexImage2D (GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, TGAImage->GetPixels());
+
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_RGBA, GL_UNSIGNED_BYTE, TGAImage->GetPixels());
+
+
+	glEnable( GL_TEXTURE_2D );
+
+	glBindTexture (GL_TEXTURE_2D, id); 
+
+    delete TGAImage;
+	return id;
+}
+
+
 
 void setObject(char obj)
 {
@@ -109,6 +155,7 @@ void setTexture(char alg, char obj, char map)
 		{
 			textureName = "./planarbumpmap/abstract2.tga";
 			grayName = "./planarbumpmap/abstract_gray2.tga";
+			myTexture = LoadTexture(grayName);
 			bumpMap = true;
 		}
 		else if (map == 's')
@@ -234,48 +281,9 @@ void DisplayFunc(void)
 	glEnable(GL_DEPTH_TEST);	
 	glEnable(GL_TEXTURE_2D);
 
-		setParameters(program);
-
-	// Load image from tga file
-	//TGA *TGAImage	= new TGA("./sphericalenvironmentmap/house2.tga");
-	TGA *TGAImage	= new TGA(textureName);
-	//TGA *TGAImage	= new TGA("./cubicenvironmentmap/cm_right.tga");
-
-	// Use to dimensions of the image as the texture dimensions
-	uint width	= TGAImage->GetWidth();
-	uint height	= TGAImage->GetHeigth();
-	
-	// The parameters for actual textures are changed
-
-	glGenTextures(1, &id);
-
-	glBindTexture(GL_TEXTURE_2D, id);
-
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-
-	// Finaly build the mipmaps
-	glTexImage2D (GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, TGAImage->GetPixels());
-
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_RGBA, GL_UNSIGNED_BYTE, TGAImage->GetPixels());
+	setParameters(program);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	glEnable( GL_TEXTURE_2D );
-
-	glBindTexture (GL_TEXTURE_2D, id); 
-
-    delete TGAImage;
-
 
 	
 	for (int i = 0; i < faces; i++)
@@ -436,7 +444,7 @@ int main(int argc, char **argv)
     glutMotionFunc(MotionFunc);
     glutKeyboardFunc(KeyboardFunc);
 
-	
+
 	setShaders();
 	
 	meshReader("sphere.obj", 1);
@@ -568,6 +576,7 @@ int getUniformVariable(GLuint program,char *name)
 	
 	if (location == -1)
 	{
+		printf("%s\n", name);
  		error_exit(1007, "No such uniform variable");
 	}
 	PrintOpenGLError();
@@ -603,25 +612,29 @@ void setParameters(GLuint program)
 	//setObject(objType[algSelect]);
 	update_Light_Position();
 
-	//bump_loc = getUniformVariable(program, "bumpmapMode");
-	//glUniform1iARB(bump_loc,bumpMap);
-
 	//Access uniform variables in shaders
+	/*
 	ambient_loc = getUniformVariable(program, "AmbientContribution");	
 	glUniform3fvARB(ambient_loc,1, ambient_cont);
-
-	//diffuse_loc = getUniformVariable(program, "DiffuseContribution");
-	//glUniform3fvARB(diffuse_loc,1, diffuse_cont);
-
+	*/
+	diffuse_loc = getUniformVariable(program, "DiffuseContribution");
+	glUniform3fvARB(diffuse_loc,1, diffuse_cont);
+	
 	specular_loc = getUniformVariable(program, "SpecularContribution");
 	glUniform3fvARB(specular_loc,1,specular_cont);
-
+	
 	exponent_loc = getUniformVariable(program, "exponent");
 	glUniform1fARB(exponent_loc,exponent);
-
+	
 	//Access attributes in vertex shader
 	//tangent_loc = glGetAttribLocationARB(program,"tang");
 	//glVertexAttrib1fARB(tangent_loc,tangent);
+	
+	GLint texLoc = getUniformVariable(program, "texture");
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1iARB(texLoc, 0);
+	glBindTexture(GL_TEXTURE_2D, myTexture);
+	
 
 }
 
