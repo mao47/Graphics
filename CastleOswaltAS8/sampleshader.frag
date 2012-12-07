@@ -1,6 +1,8 @@
 //Shader for Phong Illuminations and Phong shading
 
-uniform vec3 AmbientContribution,DiffuseContribution,SpecularContribution;
+uniform vec3 AmbientContribution;
+uniform vec3 DiffuseContribution;
+uniform vec3 SpecularContribution;
 uniform float exponent;
 varying vec3 vNormal, vLight, vView, vHalfway;
 uniform sampler2D color_texture;
@@ -15,7 +17,7 @@ vec3 AmbientComponent(void)
 
 vec3 DiffuseComponent(void)
 {
-	//vec4 color = texture2D(color_texture, 
+	//vec3 difcolor = texture(color_texture, gl_MultiTexCoord0.xy).rgb;
    return vec3(DiffuseContribution * max(0.0, dot(vNormal, vLight)));
 }
 
@@ -47,8 +49,9 @@ vec3 pertNormal(float2 texcoords, float offset)
 void main(void)
 {
    if (bumpmapMode)
+   {
       vNormal += pertNormal(gl_FragCoord.xy / resolution.xy, 0.01);
-	  
+	}  
    // Phong Illumination Model
    
    vec3 color = (AmbientComponent() + DiffuseComponent()) +

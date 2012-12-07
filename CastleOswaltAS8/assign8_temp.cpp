@@ -226,11 +226,11 @@ void DisplayFunc(void)
 	glEnable(GL_DEPTH_TEST);	
 	glEnable(GL_TEXTURE_2D);
 
-		//setParameters(program);
+		setParameters(program);
 
 	// Load image from tga file
 	//TGA *TGAImage	= new TGA("./sphericalenvironmentmap/house2.tga");
-	TGA *TGAImage	= new TGA("./sphericaltexturemap/earth2.tga");
+	TGA *TGAImage	= new TGA(textureName);
 	//TGA *TGAImage	= new TGA("./cubicenvironmentmap/cm_right.tga");
 
 	// Use to dimensions of the image as the texture dimensions
@@ -356,7 +356,7 @@ void KeyboardFunc(unsigned char key, int x, int y)
 	{
 	case 'A':
 	case 'a':
-		ShowAxes = !ShowAxes;
+		algSelect = (algSelect+1) % algCount;//ShowAxes = !ShowAxes;
 		break;
 	case 'Q':
 	case 'q':
@@ -429,7 +429,7 @@ int main(int argc, char **argv)
     glutKeyboardFunc(KeyboardFunc);
 
 	
-	//setShaders();
+	setShaders();
 	
 	meshReader("sphere.obj", 1);
 
@@ -584,13 +584,18 @@ void setParameters(GLuint program)
 	int light_loc;
 	int ambient_loc,diffuse_loc,specular_loc;
 	int exponent_loc;
+	int bump_loc;
 
 	//sample variable used to demonstrate how attributes are used in vertex shaders.
 	//can be defined as gloabal and can change per vertex
 	float tangent = 0.0;
 	float tangent_loc;
 
+	setTexture(algType[algSelect], objType[algSelect], mapType[algSelect]);
 	update_Light_Position();
+
+	//bump_loc = getUniformVariable(program, "bumpmapMode");
+	//glUniform1iARB(bump_loc,bumpMap);
 
 	//Access uniform variables in shaders
 	ambient_loc = getUniformVariable(program, "AmbientContribution");	

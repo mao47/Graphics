@@ -1,7 +1,7 @@
    
 uniform vec3 AmbientContribution,DiffuseContribution,SpecularContribution;
 uniform float exponent;
-
+uniform bool bumpmapMode;
 attribute float tang;
 
 varying vec3 vNormal, vLight, vView, vHalfway;
