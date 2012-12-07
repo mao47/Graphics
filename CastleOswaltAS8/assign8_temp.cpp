@@ -44,10 +44,12 @@ int program=-1;
 
 
 //Parameters for Copper (From: "Computer Graphics Using OpenGL" BY F.S. Hill, Jr.) 
-GLfloat ambient_cont [] = {0.19125,0.0735,0.0225};
-GLfloat diffuse_cont [] = {0.7038,0.27048,0.0828};
-GLfloat specular_cont [] = {0.256777,0.137622,0.086014};
-GLfloat exponent = 12.8;
+//GLfloat ambient_cont [] = {0.19125,0.0735,0.0225};
+GLfloat ambient_cont [] = {0.1,0.1,0.1};
+//GLfloat diffuse_cont [] = {0.7038,0.27048,0.0828};
+//GLfloat specular_cont [] = {0.256777,0.137622,0.086014};
+GLfloat specular_cont [] = {1,1,1};
+GLfloat exponent = 15;
 
 
 //Projection, camera contral related declerations
@@ -78,7 +80,13 @@ char* textureName;
 char* grayName;
 bool bumpMap = false;
 
-
+void setObject(char obj)
+{
+	if(obj == 't')
+		meshReader("teapot.obj", 1);
+	else
+		meshReader("sphere.obj", 1);
+}
 void setTexture(char alg, char obj, char map)
 {
 	bumpMap = false;
@@ -592,6 +600,7 @@ void setParameters(GLuint program)
 	float tangent_loc;
 
 	setTexture(algType[algSelect], objType[algSelect], mapType[algSelect]);
+	//setObject(objType[algSelect]);
 	update_Light_Position();
 
 	//bump_loc = getUniformVariable(program, "bumpmapMode");
