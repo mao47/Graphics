@@ -5,6 +5,7 @@ uniform vec3 DiffuseContribution;
 uniform vec3 SpecularContribution;
 uniform float exponent;
 varying vec3 vNormal, vLight, vView, vHalfway;
+varying vec2 texCoord;
 uniform sampler2D color_texture;
 uniform sampler2D bump_map;
 uniform bool bumpmapMode;
@@ -17,8 +18,8 @@ vec3 AmbientComponent(void)
 
 vec3 DiffuseComponent(void)
 {
-	//vec3 difcolor = texture(color_texture, gl_MultiTexCoord0.xy).rgb;
-   return vec3(DiffuseContribution * max(0.0, dot(vNormal, vLight)));
+	vec3 difcolor = texture2D(color_texture, texCoord).xyz;
+   return vec3(difcolor * max(0.0, dot(vNormal, vLight)));
 }
 
 vec3 SpecularComponent(void)

@@ -5,7 +5,7 @@ uniform bool bumpmapMode;
 attribute float tang;
 
 varying vec3 vNormal, vLight, vView, vHalfway;
-
+varying vec2 texCoord;
 /*
 ===============================================================================
    Phong Shading: Vertex Program
@@ -27,6 +27,8 @@ void main(void)
    // Compute the halfway vector if the halfway approximation is used   
    
    vHalfway  = normalize(vLight + vView );
+	
+	texCoord = gl_MultiTexCoord0;
 	
    float data_from_opengl = tang;
    gl_Position = ftransform();

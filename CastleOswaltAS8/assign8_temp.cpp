@@ -601,8 +601,8 @@ void setParameters(GLuint program)
 	ambient_loc = getUniformVariable(program, "AmbientContribution");	
 	glUniform3fvARB(ambient_loc,1, ambient_cont);
 
-	diffuse_loc = getUniformVariable(program, "DiffuseContribution");
-	glUniform3fvARB(diffuse_loc,1, diffuse_cont);
+	//diffuse_loc = getUniformVariable(program, "DiffuseContribution");
+	//glUniform3fvARB(diffuse_loc,1, diffuse_cont);
 
 	specular_loc = getUniformVariable(program, "SpecularContribution");
 	glUniform3fvARB(specular_loc,1,specular_cont);
