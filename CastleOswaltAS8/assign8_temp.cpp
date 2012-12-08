@@ -304,7 +304,10 @@ void DisplayFunc(void)
 			if(objSelect == 0) //plane
 			{
 				n1.x = n1.y = 0;
-				n1.z = 1;
+				if(CameraRadius*sin(CameraTheta)*sin(CameraPhi) > 0)
+					n1.z = 1;
+				else
+					n1.z = -1;
 				n2 = n1;
 				n3 = n2;
 			}
