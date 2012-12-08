@@ -82,6 +82,7 @@ char mapType [] = {'p','p','p','s','s','s','s'/*,'c','c'*/,'p'/*,'s'*/};//planar
 char* textureName;
 char* grayName;
 bool bumpMap = false;
+bool envMap = false;
 MeshObject* obj;
 int objSelect = 0;
 
@@ -143,7 +144,7 @@ void setObject(char obj)
 void setTexture(char alg, char obj, char map)
 {
 	bumpMap = false;
-
+	envMap = false;
 	if(alg == 't')
 	{
 		if(map == 'p')
@@ -153,6 +154,7 @@ void setTexture(char alg, char obj, char map)
 	}
 	else if (alg == 'e')
 	{
+		envMap = true;
 		if(map == 's')
 			textureName = "./sphericalenvironmentmap/house2.tga";
 	}
@@ -606,7 +608,7 @@ void setParameters(GLuint program)
 	int light_loc;
 	int ambient_loc,diffuse_loc,specular_loc;
 	int exponent_loc;
-	int bump_loc;
+	int bump_loc, env_loc;
 
 	//sample variable used to demonstrate how attributes are used in vertex shaders.
 	//can be defined as gloabal and can change per vertex
@@ -622,16 +624,18 @@ void setParameters(GLuint program)
 	ambient_loc = getUniformVariable(program, "AmbientContribution");	
 	glUniform3fvARB(ambient_loc,1, ambient_cont);
 
-	/*diffuse_loc = getUniformVariable(program, "DiffuseContribution");
-	glUniform3fvARB(diffuse_loc,1, diffuse_cont);
-	*/
 	specular_loc = getUniformVariable(program, "SpecularContribution");
 	glUniform3fvARB(specular_loc,1,specular_cont);
-	
 	
 	exponent_loc = getUniformVariable(program, "exponent");
 	glUniform1fARB(exponent_loc,exponent);
 	
+
+	bump_loc = getUniformVariable(program, "bumpmapMode");
+	glUniform1iARB(bump_loc, bumpMap);
+
+	env_loc = getUniformVariable(program, "envmapMode");
+	glUniform1iARB(env_loc, envMap);
 	//Access attributes in vertex shader
 	//tangent_loc = glGetAttribLocationARB(program,"tang");
 	//glVertexAttrib1fARB(tangent_loc,tangent);
