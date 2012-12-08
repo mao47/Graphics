@@ -44,11 +44,11 @@ int program=-1;
 
 
 //Parameters for Copper (From: "Computer Graphics Using OpenGL" BY F.S. Hill, Jr.) 
-//GLfloat ambient_cont [] = {0.19125,0.0735,0.0225};
-GLfloat ambient_cont [] = {0.1,0.1,0.1};
-//GLfloat diffuse_cont [] = {0.7038,0.27048,0.0828};
-//GLfloat specular_cont [] = {0.256777,0.137622,0.086014};
-GLfloat specular_cont [] = {1,1,1};
+GLfloat ambient_cont [] = {0.19125,0.0735,0.0225};
+//GLfloat ambient_cont [] = {0.1,0.1,0.1};
+GLfloat diffuse_cont [] = {0.7038,0.27048,0.0828};
+GLfloat specular_cont [] = {0.256777,0.137622,0.086014};
+//GLfloat specular_cont [] = {1,1,1};
 GLfloat exponent = 15;
 
 
@@ -527,6 +527,7 @@ void setShaders()
 
 	glGetObjectParameterivARB(fragment_shader, GL_OBJECT_COMPILE_STATUS_ARB, &fragCompiled);
 	glGetObjectParameterivARB(vertex_shader, GL_OBJECT_COMPILE_STATUS_ARB, &vertCompiled);
+
     if (!vertCompiled || !fragCompiled)
 	{
         cout<<"not compiled"<<endl;
@@ -535,7 +536,6 @@ void setShaders()
 	//create an empty program object to attach the shader objects
 	p = glCreateProgramObjectARB();
 
-	program =p;
 	//attach the shader objects to the program object
 	glAttachObjectARB(p,vertex_shader);
 	glAttachObjectARB(p,fragment_shader);
@@ -559,7 +559,11 @@ void setShaders()
 	"glGetObjectParameterARB(p,GL_OBJECT_LINK_STATUS_ARB)"
 	*/
 	glLinkProgramARB(p);
+	GLint result;
+	glGetObjectParameterivARB(p, GL_OBJECT_LINK_STATUS_ARB, &result);
 
+	if (!result)
+		printf("Failed to link file.\n");
 
 	//Start to use the program object, which is the part of the current rendering state
 	glUseProgramObjectARB(p);
@@ -567,6 +571,7 @@ void setShaders()
 	    
 	setParameters(p);
 
+	program =p;
 }
 
 //Gets the location of the uniform variable given with "name" in the memory
@@ -615,15 +620,17 @@ void setParameters(GLuint program)
 	update_Light_Position();
 
 	//Access uniform variables in shaders
-	/*
+	
 	ambient_loc = getUniformVariable(program, "AmbientContribution");	
 	glUniform3fvARB(ambient_loc,1, ambient_cont);
-	*/
+	
+	
 	diffuse_loc = getUniformVariable(program, "DiffuseContribution");
 	glUniform3fvARB(diffuse_loc,1, diffuse_cont);
 	
 	specular_loc = getUniformVariable(program, "SpecularContribution");
 	glUniform3fvARB(specular_loc,1,specular_cont);
+	
 	
 	exponent_loc = getUniformVariable(program, "exponent");
 	glUniform1fARB(exponent_loc,exponent);
