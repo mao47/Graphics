@@ -221,7 +221,7 @@ point getSphericalTextureCoordinates(point pos) // assumes center is (0, 0, 0)
 	point p;
 	normalize(pos) ;
 	p.x = -(atan(pos.z/pos.x) /(2*PI) + PI/2);
-	if(pos.x > 0) p.x += 0.5;
+	//if(pos.x > 0) p.x += 0.5;
 	p.y = -(acos(pos.y) /(PI));
 	//p.y = acos(pos.z) / PI; //z = R cos(v)
 	//p.x = acos(pos.x / (sin(PI*p.y)))/ (2*PI);
@@ -311,6 +311,43 @@ void DisplayFunc(void)
 				n2 = n1;
 				n3 = n2;
 			}
+			if(mapType[algSelect] == 's')
+			{
+				
+				if(v1.x < 0 && v1.z > 0)
+					tx1.x -= .5;
+				if(v2.x < 0 && v2.z > 0)
+					tx2.x -= .5;
+				if(v3.x < 0 && v3.z > 0)
+					tx3.x -= .5;
+
+				if(v1.x < 0 && v1.z < 0)
+					tx1.x += .5;
+				if(v2.x < 0 && v2.z < 0)
+					tx2.x += .5;
+				if(v3.x < 0 && v3.z < 0)
+					tx3.x += .5;
+
+
+				//no matter what I try, can't get continuity in pacific ocean
+				//if(v1.x < 0 && v1.z < 0)
+				//{
+				//	if(v2.z > 0) tx2.z += 2.;
+				//	if(v3.z > 0) tx3.z += 2.;
+				//}
+				//else if(v2.x < 0 && v2.z < 0)
+				//{
+				//	if(v1.z > 0) tx1.z += 2.;
+				//	if(v3.z > 0) tx3.z += 2.;
+				//}
+				//else if(v3.x < 0 && v3.z < 0)
+				//{
+				//	if(v1.z > 0) tx1.z += 2.;
+				//	if(v2.z > 0) tx2.z += 2.;
+				//}
+
+			}
+
 
 			glNormal3f(n1.x, n1.y, n1.z);
 			glTexCoord2f (tx1.x, tx1.y);
