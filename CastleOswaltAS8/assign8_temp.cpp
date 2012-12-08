@@ -68,6 +68,7 @@ bool MouseLeft = false;
 bool MouseRight = false;
 
 GLuint myTexture;
+GLuint colorTexture, bumpTexture;
 
 
 point origin = {0,0,0};
@@ -619,9 +620,9 @@ void setParameters(GLuint program)
 	ambient_loc = getUniformVariable(program, "AmbientContribution");	
 	glUniform3fvARB(ambient_loc,1, ambient_cont);
 	*/
-	diffuse_loc = getUniformVariable(program, "DiffuseContribution");
+	/*diffuse_loc = getUniformVariable(program, "DiffuseContribution");
 	glUniform3fvARB(diffuse_loc,1, diffuse_cont);
-	
+	*/
 	specular_loc = getUniformVariable(program, "SpecularContribution");
 	glUniform3fvARB(specular_loc,1,specular_cont);
 	
@@ -632,7 +633,7 @@ void setParameters(GLuint program)
 	//tangent_loc = glGetAttribLocationARB(program,"tang");
 	//glVertexAttrib1fARB(tangent_loc,tangent);
 	
-	GLint texLoc = getUniformVariable(program, "texture");
+	GLint texLoc = getUniformVariable(program, "color_texture");
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1iARB(texLoc, 0);
 	glBindTexture(GL_TEXTURE_2D, myTexture);
