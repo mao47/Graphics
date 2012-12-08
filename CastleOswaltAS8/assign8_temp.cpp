@@ -134,9 +134,11 @@ GLuint LoadTexture( const char * filename)
 void setObject(char obj)
 {
 	if(obj == 't')
-		objSelect = 1;//meshReader("teapot.obj", 1);
+		objSelect = 2;
+	else if (obj == 'p')
+		objSelect = 0;
 	else
-		objSelect = 0;//meshReader("sphere.obj", 1);
+		objSelect = 1;
 }
 void setTexture(char alg, char obj, char map)
 {
@@ -488,8 +490,9 @@ int main(int argc, char **argv)
 	
 	meshReader("sphere.obj", 1);
 	obj = new MeshObject[3];
-	obj[0].Load("sphere.obj",1,0,0,0,0,0,0);
-	obj[1].Load("teapot.obj",1,0,0,0,0,0,0);
+	obj[0].Load("plane.obj",1,0,0,0,0,0,0);
+	obj[1].Load("sphere.obj",1,0,0,0,0,0,0);
+	obj[2].Load("teapot.obj",1,0,0,0,0,0,0);
 	glutMainLoop();
 
 	return 0;
