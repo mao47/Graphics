@@ -51,7 +51,7 @@ GLfloat ambient_cont [] = {0.1,0.1,0.1};
 GLfloat diffuse_cont [] = {0.7038,0.27048,0.0828};
 //GLfloat specular_cont [] = {0.256777,0.137622,0.086014};
 GLfloat specular_cont [] = {1,1,1};
-GLfloat exponent = 15;
+GLfloat exponent = 15;//set in setTexture, bump looks better with different value
 
 
 //Projection, camera contral related declerations
@@ -145,6 +145,8 @@ void setTexture(char alg, char obj, char map)
 {
 	bumpMap = false;
 	envMap = false;
+	exponent = 15;
+
 	if(alg == 't')
 	{
 		if(map == 'p')
@@ -160,6 +162,7 @@ void setTexture(char alg, char obj, char map)
 	}
 	else if (alg == 'b')
 	{
+		exponent = 30;
 		if(map == 'p')
 		{
 			textureName = "./planarbumpmap/abstract2.tga";
