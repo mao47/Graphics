@@ -20,6 +20,8 @@ Spring 2006
 #include "glprocs.h"
 # include "assign8_temp.h"
 #include "read_tga.h"
+#include "objects.h"
+
 
 #define PI 3.14159265359
 
@@ -72,7 +74,7 @@ GLuint colorTexture, bumpTexture;
 
 
 point origin = {0,0,0};
-int algSelect = 7;
+int algSelect = 0;
 int algCount = 8;
 char algType [] = {'t','t','t','t','t','e','e'/*,'e','e'*/,'b'/*,'b'*/};//texture, environment, bump
 char objType [] = {'p','s','t','s','t','s','t'/*,'s','t'*/,'p'/*,'s'*/};//plane, sphere, teapot
@@ -80,6 +82,8 @@ char mapType [] = {'p','p','p','s','s','s','s'/*,'c','c'*/,'p'/*,'s'*/};//planar
 char* textureName;
 char* grayName;
 bool bumpMap = false;
+MeshObject* obj;
+int objSelect = 0;
 
 GLuint LoadTexture( const char * filename)
 {
@@ -130,9 +134,9 @@ GLuint LoadTexture( const char * filename)
 void setObject(char obj)
 {
 	if(obj == 't')
-		meshReader("teapot.obj", 1);
+		objSelect = 1;//meshReader("teapot.obj", 1);
 	else
-		meshReader("sphere.obj", 1);
+		objSelect = 0;//meshReader("sphere.obj", 1);
 }
 void setTexture(char alg, char obj, char map)
 {
@@ -261,7 +265,14 @@ point texCoord(char map, point vert)
 		return getSphericalTextureCoordinates(vert);
 }
 
-
+point v2p(Vertex vert)
+{
+	point p;
+	p.x = vert.x;
+	p.y = vert.y;
+	p.z = vert.z;
+	return p;
+}
 void DisplayFunc(void) 
 {
     GLuint id ;
@@ -288,8 +299,33 @@ void DisplayFunc(void)
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	for(int i = 0; i < obj[objSelect].FaceCount; i ++)
+	{
+		glBegin(GL_TRIANGLES);
+			point v1, v2, v3, n1, n2, n3, tx1, tx2, tx3;
+			v1 = v2p(	obj[objSelect].pVertexList[obj[objSelect].pFaceList[i].v1] );	//v1 = vertList[faceList[i].v1];
+			v2 = v2p(	obj[objSelect].pVertexList[obj[objSelect].pFaceList[i].v2] );
+			v3 = v2p(	obj[objSelect].pVertexList[obj[objSelect].pFaceList[i].v3] );
+			n1 = v2p(	obj[objSelect].pNormList  [obj[objSelect].pFaceList[i].v1] ); //vertList[faceList[i].v1];
+			n2 = v2p(	obj[objSelect].pNormList  [obj[objSelect].pFaceList[i].v2] );
+			n3 = v2p(	obj[objSelect].pNormList  [obj[objSelect].pFaceList[i].v3] );
+			tx1 = texCoord(mapType[algSelect], v1);
+			tx2 = texCoord(mapType[algSelect], v2);
+			tx3 = texCoord(mapType[algSelect], v3);
+
+			glNormal3f(n1.x, n1.y, n1.z);
+			glTexCoord2f (tx1.x, tx1.y);
+			glVertex3f(v1.x, v1.y, v1.z);
+			glNormal3f(n2.x, n2.y, n2.z);
+			glTexCoord2f (tx2.x, tx2.y);
+			glVertex3f(v2.x, v2.y, v2.z);
+			glNormal3f(n3.x, n3.y, n3.z);
+			glTexCoord2f (tx3.x, tx3.y);
+			glVertex3f(v3.x, v3.y, v3.z);
+		glEnd();
+	}
 	
-	for (int i = 0; i < faces; i++)
+	/*for (int i = 0; i < faces; i++)
 	{
 		
 		glBegin(GL_TRIANGLES);
@@ -315,7 +351,7 @@ void DisplayFunc(void)
 			glVertex3f(v3.x, v3.y, v3.z);
 		glEnd();
 
-	}	
+	}	*/
 
 	//glutSolidTeapot(1);
 //	setParameters(program);
@@ -451,7 +487,9 @@ int main(int argc, char **argv)
 	setShaders();
 	
 	meshReader("sphere.obj", 1);
-
+	obj = new MeshObject[3];
+	obj[0].Load("sphere.obj",1,0,0,0,0,0,0);
+	obj[1].Load("teapot.obj",1,0,0,0,0,0,0);
 	glutMainLoop();
 
 	return 0;
@@ -617,7 +655,7 @@ void setParameters(GLuint program)
 	float tangent_loc;
 
 	setTexture(algType[algSelect], objType[algSelect], mapType[algSelect]);
-	//setObject(objType[algSelect]);
+	setObject(objType[algSelect]);
 	update_Light_Position();
 
 	//Access uniform variables in shaders

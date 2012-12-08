@@ -82,6 +82,7 @@
   <ItemGroup>
     <ClCompile Include="assign8_temp.cpp" />
     <ClCompile Include="glprocs.c" />
+    <ClCompile Include="objects.cpp" />
     <ClCompile Include="read_tga.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -90,6 +91,7 @@
     <ClInclude Include="glext.h" />
     <ClInclude Include="glprocs.h" />
     <ClInclude Include="glxext.h" />
+    <ClInclude Include="objects.h" />
     <ClInclude Include="read_tga.h" />
     <ClInclude Include="wglext.h" />
   </ItemGroup>
