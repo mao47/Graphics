@@ -162,7 +162,7 @@ void setTexture(char alg, char obj, char map)
 		{
 			textureName = "./planarbumpmap/abstract2.tga";
 			grayName = "./planarbumpmap/abstract_gray2.tga";
-			myTexture = LoadTexture(grayName);
+			//myTexture = LoadTexture(grayName);
 			bumpMap = true;
 		}
 		else if (map == 's')
@@ -172,6 +172,7 @@ void setTexture(char alg, char obj, char map)
 			bumpMap = true;
 		}
 	}
+	myTexture= LoadTexture(textureName);
 }
 
 float magnitude(point p)
@@ -240,25 +241,7 @@ point getPlanarTextureCoordinates(point pos, float rangeX, float rangeY)
 	p.y += 0.5;
 	return p;
 }
-point getIntermSphere(point pos, point center, float radius) //get sphere point by projecting radially out
-{
-	point p;
-	point normal = {pos.x - center.x, pos.y - center.y, pos.z - center.z};
-	normalize(normal);
-	p.x = center.x + radius * normal.x;
-	p.y = center.y + radius * normal.y;
-	p.z = center.z + radius * normal.z;
-	return p;
-	
-}
-point getIntermSphere(point pos, point center)
-{
-	return getIntermSphere(pos, center, 1);
-}
-point getIntermSphere(point pos)
-{
-	return getIntermSphere(pos, origin);
-}
+
 point texCoord(char map, point vert)
 {
 	if(map == 'p')
@@ -267,6 +250,7 @@ point texCoord(char map, point vert)
 		return getSphericalTextureCoordinates(vert);
 }
 
+//convert vertex to point
 point v2p(Vertex vert)
 {
 	point p;
@@ -326,34 +310,6 @@ void DisplayFunc(void)
 			glVertex3f(v3.x, v3.y, v3.z);
 		glEnd();
 	}
-	
-	/*for (int i = 0; i < faces; i++)
-	{
-		
-		glBegin(GL_TRIANGLES);
-			point v1, v2, v3, n1, n2, n3, tx1, tx2, tx3;
-			v1 = vertList[faceList[i].v1];
-			v2 = vertList[faceList[i].v2];
-			v3 = vertList[faceList[i].v3];
-			n1 = vertList[faceList[i].v1];
-			n2 = vertList[faceList[i].v2];
-			n3 = vertList[faceList[i].v3];
-			tx1 = texCoord(mapType[algSelect], v1);
-			tx2 = texCoord(mapType[algSelect], v2);
-			tx3 = texCoord(mapType[algSelect], v3);
-
-			glNormal3f(n1.x, n1.y, n1.z);
-			glTexCoord2f (tx1.x, tx1.y);
-			glVertex3f(v1.x, v1.y, v1.z);
-			glNormal3f(n2.x, n2.y, n2.z);
-			glTexCoord2f (tx2.x, tx2.y);
-			glVertex3f(v2.x, v2.y, v2.z);
-			glNormal3f(n3.x, n3.y, n3.z);
-			glTexCoord2f (tx3.x, tx3.y);
-			glVertex3f(v3.x, v3.y, v3.z);
-		glEnd();
-
-	}	*/
 
 	//glutSolidTeapot(1);
 //	setParameters(program);
