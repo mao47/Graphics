@@ -301,6 +301,14 @@ void DisplayFunc(void)
 			tx2 = texCoord(mapType[algSelect], v2);
 			tx3 = texCoord(mapType[algSelect], v3);
 
+			if(objSelect == 0) //plane
+			{
+				n1.x = n1.y = 0;
+				n1.z = 1;
+				n2 = n1;
+				n3 = n2;
+			}
+
 			glNormal3f(n1.x, n1.y, n1.z);
 			glTexCoord2f (tx1.x, tx1.y);
 			glVertex3f(v1.x, v1.y, v1.z);
