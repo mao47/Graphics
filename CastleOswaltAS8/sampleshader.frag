@@ -5,8 +5,9 @@ uniform vec3 DiffuseContribution;
 uniform vec3 SpecularContribution;
 uniform float exponent;
 varying vec3 vNormal, vLight, vView, vHalfway;
-varying vec2 texCoord;
+uniform vec2 texCoord;
 uniform sampler2D texture;
+uniform sampler2D bumpMap;
 uniform bool bumpmapMode;
 uniform vec2 resolution;
 vec3 realNormal;
@@ -47,7 +48,6 @@ vec3 pertNormal(float offset)
    Phong Shading: Fragment Program
 ===============================================================================
 */
-
 void main(void)
 {
    realNormal = vNormal;
@@ -57,8 +57,7 @@ void main(void)
    }  
    // Phong Illumination Model
    
-   vec3 color = (AmbientComponent() + DiffuseComponent()) +
-                SpecularComponent();  
+   vec3 color = (AmbientComponent() + DiffuseComponent() + SpecularComponent());
    // Final color
    
    
