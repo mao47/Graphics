@@ -46,11 +46,11 @@ int program=-1;
 
 
 //Parameters for Copper (From: "Computer Graphics Using OpenGL" BY F.S. Hill, Jr.) 
-GLfloat ambient_cont [] = {0.19125,0.0735,0.0225};
-//GLfloat ambient_cont [] = {0.1,0.1,0.1};
+//GLfloat ambient_cont [] = {0.19125,0.0735,0.0225};
+GLfloat ambient_cont [] = {0.1,0.1,0.1};
 GLfloat diffuse_cont [] = {0.7038,0.27048,0.0828};
-GLfloat specular_cont [] = {0.256777,0.137622,0.086014};
-//GLfloat specular_cont [] = {1,1,1};
+//GLfloat specular_cont [] = {0.256777,0.137622,0.086014};
+GLfloat specular_cont [] = {1,1,1};
 GLfloat exponent = 15;
 
 
@@ -247,7 +247,7 @@ point getPlanarTextureCoordinates(point pos, float rangeX, float rangeY)
 point texCoord(char map, point vert)
 {
 	if(map == 'p')
-		return getPlanarTextureCoordinates(vert,1,1);
+		return getPlanarTextureCoordinates(vert,2,2);
 	else
 		return getSphericalTextureCoordinates(vert);
 }
@@ -642,9 +642,11 @@ void setParameters(GLuint program)
 	
 	GLint texLoc = getUniformVariable(program, "texture");
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1iARB(texLoc, 0);
+	//glUniform1iARB(texLoc, 0);
 	glBindTexture(GL_TEXTURE_2D, myTexture);
-	
+
+
+
 
 }
 

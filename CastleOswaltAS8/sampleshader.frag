@@ -5,13 +5,14 @@ uniform vec3 DiffuseContribution;
 uniform vec3 SpecularContribution;
 uniform float exponent;
 varying vec3 vNormal, vLight, vView, vHalfway;
-uniform vec2 texCoord;
+
 uniform sampler2D texture;
 uniform sampler2D bumpMap;
 uniform bool bumpmapMode;
 uniform vec2 resolution;
 uniform bool envmapMode;
 vec3 realNormal;
+varying vec2 texCoord;
 
 vec2 EnvMap(void)
 {
@@ -19,7 +20,11 @@ vec2 EnvMap(void)
 	vec3 N = normalize(vNormal);
 	vec3 L = normalize(vLight);
 	vec3 R = normalize(N - 2 * N * dot(N, L));
-	vec2 tex = vec2(-(atan(R.z/R.x) / (2*PI) + PI/2), -(acos(R.y)/PI));
+	vec2 tex = vec2((atan(R.z/R.x) / (2*PI) + PI/2), (acos(R.y)/PI));
+	if(R.x > 0)
+	{
+		tex.x = tex.x + 0.5;
+	}
 	return tex;
 }
 
@@ -62,7 +67,10 @@ vec3 pertNormal(float offset)
 */
 void main(void)
 {
-	//texCoord = gl_Multi
+	if(envmapMode)
+	{
+		texCoord = EnvMap();
+	}
 	normalize(vNormal);
 	normalize(vLight);
 	normalize(vView);
@@ -72,10 +80,6 @@ void main(void)
    {
       realNormal += pertNormal(0.01);
    }  
-   if(envmapMode)
-   {
-		texCoord = EnvMap();
-   }
    
    // Phong Illumination Model
    
